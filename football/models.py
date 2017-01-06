@@ -6,9 +6,10 @@ class Match(models.Model):
     date = models.DateTimeField('match date')
     home_team = models.CharField(max_length=200)
     away_team = models.CharField(max_length=200)
-    fthg = models.IntegerField(default=0)
-    ftag = models.IntegerField(default=0)
-    ftr = models.CharField(max_length=1)
+    fthg = models.IntegerField(blank=True, null=True)
+    ftag = models.IntegerField(blank=True, null=True)
+    ftr = models.CharField(max_length=1, blank=True, default="")
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return "%s - %s vs %s" % (
@@ -18,3 +19,4 @@ class Match(models.Model):
 
     class Meta:
         verbose_name_plural = "Matches"
+        unique_together = ["date", "home_team", "away_team"]
