@@ -27,6 +27,7 @@ class Command(BaseCommand):
                 match.fthg = row['FTHG']
                 match.ftag = row['FTAG']
                 match.ftr = row['FTR']
+                match.completed = True
                 
                 # TODO: Add exception handling to catch duplicates.
                 # TODO: Change the "Adding" message.
