@@ -12,7 +12,7 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """Return the last completed matches."""
-        return Match.objects.order_by('-date')[:5]
+        return Match.objects.filter(completed=True).order_by('-date')[:5]
 
 class DetailView(generic.DetailView):
     model = Match

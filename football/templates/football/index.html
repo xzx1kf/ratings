@@ -1,7 +1,7 @@
 {% if latest_matches_list %}
     <ul>
     {% for match in latest_matches_list %}
-    <li><a href="{% url 'football:detail' match.id %}">{{ match.date.date }} - {{ match.home_team }} vs {{ match.away_team }} {{ match.fthg }}-{{ match.ftag }}</a></li>
+    <li><a href="{% url 'football:detail' match.id %}">{{ match.date.date }} - {{ match.home_team.name }} vs {{ match.away_team.name }} {{ match.fthg }}-{{ match.ftag }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
