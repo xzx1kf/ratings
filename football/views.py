@@ -21,18 +21,20 @@ class DetailView(generic.DetailView):
     model = Match
     template_name = 'football/detail.html'
 
-def analysis(request, home_team_id, away_team_id):
+def analysis(request):
 
     teams = Team.objects.all()
 
     if request.method == 'POST':
         form = AnalysisForm(request.POST)
         if form.is_valid():
-            return HttpResponseRedirect('/results/')
+            home_team = get_object_or_404(Team, pk=request.POST.get('home_team'))
+            away_team = get_object_or_404(Team, pk=request.POST.get('away_team'))
+            return HttpResponse("{} vs {}".format(home_team, away_team))
     else:
         form = AnalysisForm()
 
-    return render(request, 'analysis.html', {'form': form})
+    return render(request, 'football/analysis.html', {'form': form})
 
     """
     # Get Total number of matches
