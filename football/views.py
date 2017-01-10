@@ -1,9 +1,12 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
+from django.db.models import Sum
 from django.urls import reverse
 from django.views import generic
 
-from .models import Match
+from .models import Match, Team
+from .forms import AnalysisForm
 
 # Create your views here.
 class IndexView(generic.ListView):
@@ -17,3 +20,47 @@ class IndexView(generic.ListView):
 class DetailView(generic.DetailView):
     model = Match
     template_name = 'football/detail.html'
+
+def analysis(request, home_team_id, away_team_id):
+
+    teams = Team.objects.all()
+
+    if request.method == 'POST':
+        form = AnalysisForm(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect('/results/')
+    else:
+        form = AnalysisForm()
+
+    return render(request, 'analysis.html', {'form': form})
+
+    """
+    # Get Total number of matches
+    number_of_matches = 0
+    total_fthg = 0
+
+    for team in teams:
+        number_of_matches += Match.objects.filter(home_team=team).order_by('-date')[:19].count()
+    
+        # For those games get the number of FTHG and FTAG
+        #total_fthg += Match.objects.filter(home_team=team).aggregate(
+        #        Sum(F('fthg'))).value
+        #print(total_fthg)
+
+
+    total_fthg = Match.objects.aggregate(
+            Sum('fthg')).get('fthg__sum')
+
+    total_ftag = Match.objects.aggregate(
+            Sum('ftag')).get('ftag__sum')
+
+    # Get total home team home goals
+    home_team = Team.objects.get(id=home_team_id)
+    
+
+    # Get total away team home goals
+    away_team = Team.objects.get(id=away_team_id)
+    
+    return HttpResponse("{} {}".format(total_fthg, total_ftag))
+
+    """
