@@ -23,5 +23,21 @@
     </tr>
 </table>
 <h3>Predicted Score: {{ home_goals }} - {{ away_goals }}</h3>
-<h3>Match Probabilities: {{ home_win_probability }} {{ draw_probability }} {{ away_win_probability }}</h3>
+<h3>Match Probabilities: {{ home_win_probability }}% {{ draw_probability }}% {{ away_win_probability }}%</h3>
 
+<table>
+    {% for h, a in last_5_matches %}
+    <tr>
+        <td>{{ h.date|date:"D d M Y" }}</td>
+        <td>{{ h.home_team.name }}</td>
+        <td>{{ h.fthg }}</td>
+        <td>{{ h.ftag }}</td>
+        <td>{{ h.away_team.name }}</td>
+        <td>{{ a.date|date:"D d M Y" }}</td>
+        <td>{{ a.home_team.name }}</td>
+        <td>{{ a.fthg }}</td>
+        <td>{{ a.ftag }}</td>
+        <td>{{ a.away_team.name }}</td>
+    </tr>
+    {% endfor %}
+</table>

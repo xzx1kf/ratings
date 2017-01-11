@@ -9,6 +9,7 @@ class Command(BaseCommand):
     help = 'Imports the data into the database'
 
     def handle(self, *args, **options):
+        """
         csv_file = "/home/nick/dev/ratings/football/data/Divisions.csv"
 
         with open(csv_file) as csvfile:
@@ -29,8 +30,9 @@ class Command(BaseCommand):
                 team.name = row['Name']
                 team.division = Division.objects.get(name=row['Division'])
                 team.save()
+        """
 
-        csv_file = "/home/nick/dev/ratings/football/data/E0_1314.csv"
+        csv_file = "/home/nick/dev/ratings/football/data/E0.csv"
 
         with open(csv_file) as csvfile:
             reader = csv.DictReader(csvfile)

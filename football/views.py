@@ -131,6 +131,11 @@ def analysis(request):
                     away_win_probability += (home / 10) * (away / 10)
             print("away win probability: {}".format(away_win_probability))
 
+            # home team last 5 home matches
+            home_team_last_5_matches = Match.objects.filter(home_team=home_team).order_by('-date')[:5]
+            away_team_last_5_matches = Match.objects.filter(away_team=away_team).order_by('-date')[:5]
+            last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
+    
             return render(request, 'football/results.html', {
                 'home_team'     : home_team,
                 'away_team'     : away_team,
@@ -141,6 +146,9 @@ def analysis(request):
                 'away_win_probability'      : round(away_win_probability, 1),
                 'home_team_probabilities'   : home_team_probabilities,
                 'away_team_probabilities'   : away_team_probabilities,
+                'home_team_last_5_matches'  : home_team_last_5_matches,
+                'away_team_last_5_matches'  : away_team_last_5_matches,
+                'last_5_matches'            : last_5_matches,
                 })
     else:
         form = AnalysisForm()
