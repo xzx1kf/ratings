@@ -94,17 +94,12 @@ def analysis(request):
             print("{} denfese strength: {}".format(home_team.name, ht_defense_strength))
             print("{} expected goals: {}".format(away_team.name, away_goals))
 
-            probabilities = []
             home_team_probabilities = []
             away_team_probabilities = []
 
             for i in range(0,6):
-                probabilities.append([
-                    "{0:.0f}%".format(poisson.pmf(i, home_goals) * 100),
-                    "{0:.0f}%".format(poisson.pmf(i, away_goals) * 100),
-                ])
-                home_team_probabilities.append(poisson.pmf(i, home_goals))
-                away_team_probabilities.append(poisson.pmf(i, away_goals))
+                home_team_probabilities.append(round((poisson.pmf(i, home_goals) * 100), 1))
+                away_team_probabilities.append(round((poisson.pmf(i, away_goals) * 100), 1))
 
                 #print("{}".format(he))
                 #print("{}".format(ae))
@@ -116,7 +111,7 @@ def analysis(request):
                 for j in range(i+1,6):
                     home = home_team_probabilities[j]
                     away = away_team_probabilities[i]
-                    home_win_probability += home * away
+                    home_win_probability += (home / 10) * (away / 10)
             print("home win probability: {}".format(home_win_probability))
 
             # draw %
@@ -124,7 +119,7 @@ def analysis(request):
             for i in range(0,6):
                 home = home_team_probabilities[i]
                 away = away_team_probabilities[i]
-                draw_probability += home * away
+                draw_probability += (home / 10) * (away / 10)
             print("draw probability: {}".format(draw_probability))
 
             # away win %
@@ -133,13 +128,19 @@ def analysis(request):
                 for j in range(i+1,6):
                     home = home_team_probabilities[i]
                     away = away_team_probabilities[j]
-                    away_win_probability += home * away
+                    away_win_probability += (home / 10) * (away / 10)
             print("away win probability: {}".format(away_win_probability))
 
             return render(request, 'football/results.html', {
                 'home_team'     : home_team,
                 'away_team'     : away_team,
-                'probabilities'  : probabilities,
+                'home_goals'    : round(home_goals),
+                'away_goals'    : round(away_goals),
+                'home_win_probability'      : round(home_win_probability, 1),
+                'draw_probability'          : round(draw_probability, 1),
+                'away_win_probability'      : round(away_win_probability, 1),
+                'home_team_probabilities'   : home_team_probabilities,
+                'away_team_probabilities'   : away_team_probabilities,
                 })
     else:
         form = AnalysisForm()

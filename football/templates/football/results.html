@@ -1,20 +1,27 @@
-{{ home_team }} vs {{ away_team }}
+<h3>{{ home_team.name }} vs {{ away_team.name }}</h3>
 <table>
     <tr>
-        <td></td>
-        <td>{{ home_team }}</td>
-        <td>vs</td>
-        <td>{{ away_team }}</td>
-        <td></td>
+        <th>Goals</th>
+        <th>0</th>
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+        <th>4</th>
+        <th>5</th>
     </tr>
-{% for h, a in probabilities %}
     <tr>
-        <td>{{ forloop.counter0 }}
-        <td>{{ h }}</td>
-        <td>-</td>
-        <td>{{ a }}</td>
-        <td>{{ forloop.counter0 }}
+        <td>{{ home_team.name }}</td>
+        {% for p in home_team_probabilities %}
+        <td>{{ p }}%</td>
+        {% endfor %}
     </tr>
-{% endfor %}
+    <tr>
+        <td>{{ away_team.name }}</td>
+        {% for p in away_team_probabilities %}
+        <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
 </table>
+<h3>Predicted Score: {{ home_goals }} - {{ away_goals }}</h3>
+<h3>Match Probabilities: {{ home_win_probability }} {{ draw_probability }} {{ away_win_probability }}</h3>
 
