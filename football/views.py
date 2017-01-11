@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.urls import reverse
 from django.views import generic
 
-from .models import Match, Team
+from .models import Match, Team, Division
 from .forms import AnalysisForm
 
 from scipy.stats import poisson
@@ -29,19 +29,30 @@ def analysis(request):
     if request.method == 'POST':
         form = AnalysisForm(request.POST)
         if form.is_valid():
-            teams = Team.objects.all()
+            division = Division.objects.get(name='E0')
+            teams = Team.objects.filter(division=division)
 
             league_total_games = 0
+            total_fthg = 0
+            total_ftag = 0
 
             # Get league stats
             for team in teams:
-                league_total_games += Match.objects.filter(home_team=team).order_by('-date')[:19].count()
-            total_fthg = Match.objects.order_by('-date')[:19].aggregate(
-                    Sum('fthg')).get('fthg__sum')
-            total_ftag = Match.objects.order_by('-date')[:19].aggregate(
-                    Sum('ftag')).get('ftag__sum')
+                q = Match.objects.filter(home_team=team)
+                q = q.filter(division=division)
+                q = q.order_by('-date')[:19]
+                league_total_games += q.count()
+                total_fthg += q.aggregate(Sum('fthg')).get('fthg__sum')
+                total_ftag += q.aggregate(Sum('ftag')).get('ftag__sum')
+
             league_attack_strength = total_fthg / league_total_games
             league_defense_strength = total_ftag / league_total_games
+
+            print("league total games: {}".format(league_total_games))
+            print("total_fthg: {}".format(total_fthg))
+            print("total_ftag: {}".format(total_ftag))
+            print("league attack strength: {}".format(league_attack_strength))
+            print("league defense strength: {}".format(league_defense_strength))
 
             # Get team stats
             home_team = get_object_or_404(Team, pk=request.POST.get('home_team'))
@@ -56,77 +67,81 @@ def analysis(request):
             away_team_ftag = Match.objects.filter(home_team=home_team).order_by('-date')[:19].aggregate(
                     Sum('ftag')).get('ftag__sum')
 
+            print("{} fthg: {}".format(home_team.name, home_team_fthg))
+            print("{} fthg: {}".format(away_team.name, away_team_fthg))
+            print("{} ftag: {}".format(home_team.name, home_team_ftag))
+            print("{} ftag: {}".format(away_team.name, away_team_ftag))
+
             # calculate home team attack strength
             ht_attack_strength = (home_team_fthg / 19) / (total_fthg / league_total_games)
             # calculate away team defense strength
             at_defense_strength = (away_team_fthg / 19) / (total_fthg / league_total_games)
-
             # calculate expected home goals
             home_goals = ht_attack_strength * at_defense_strength * league_attack_strength
+
+            print("{} attack strength: {}".format(home_team.name, ht_attack_strength))
+            print("{} denfese strength: {}".format(away_team.name, at_defense_strength))
+            print("{} expected goals: {}".format(home_team.name, home_goals))
 
             # calculate away team attack strength
             at_attack_strength = (home_team_ftag / 19) / (total_ftag / league_total_games)
             # calculate home team defense strength
             ht_defense_strength = (away_team_ftag / 19) / (total_ftag / league_total_games)
-
             # calculate expected away goals
             away_goals = at_attack_strength * ht_defense_strength * league_defense_strength
 
+            print("{} attack strength: {}".format(away_team.name, at_attack_strength))
+            print("{} denfese strength: {}".format(home_team.name, ht_defense_strength))
+            print("{} expected goals: {}".format(away_team.name, away_goals))
+
             probabilities = []
+            home_team_probabilities = []
             away_team_probabilities = []
 
-            for i in range(0,5):
-                probabilities.append(
-                        "{0:.0f}%".format(poisson.pmf(i, home_goals) * 100))
-                probabilities.append(
-                        "{0:.0f}%".format(poisson.pmf(i, away_goals) * 100))
+            for i in range(0,6):
+                probabilities.append([
+                    "{0:.0f}%".format(poisson.pmf(i, home_goals) * 100),
+                    "{0:.0f}%".format(poisson.pmf(i, away_goals) * 100),
+                ])
+                home_team_probabilities.append(poisson.pmf(i, home_goals))
+                away_team_probabilities.append(poisson.pmf(i, away_goals))
+
+                #print("{}".format(he))
+                #print("{}".format(ae))
+
+            # calculate match probabilities
+            # home win %
+            home_win_probability = 0
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probabilities[j]
+                    away = away_team_probabilities[i]
+                    home_win_probability += home * away
+            print("home win probability: {}".format(home_win_probability))
+
+            # draw %
+            draw_probability = 0
+            for i in range(0,6):
+                home = home_team_probabilities[i]
+                away = away_team_probabilities[i]
+                draw_probability += home * away
+            print("draw probability: {}".format(draw_probability))
+
+            # away win %
+            away_win_probability = 0
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probabilities[i]
+                    away = away_team_probabilities[j]
+                    away_win_probability += home * away
+            print("away win probability: {}".format(away_win_probability))
 
             return render(request, 'football/results.html', {
-                'home_team' : home_team,
-                'away_team' : away_team,
-                'probs'     : probabilities,
+                'home_team'     : home_team,
+                'away_team'     : away_team,
+                'probabilities'  : probabilities,
                 })
-            """
-            return HttpResponse("{} {} {} vs {} {} {}".format(
-                home_team, 
-                home_team_fthg, 
-                ht_attack_strength,
-                away_team,
-                away_team_fthg,
-                poisson.pmf(2, home_goals)))
-            """
     else:
         form = AnalysisForm()
 
     return render(request, 'football/analysis.html', {'form': form})
-
-    """
-    # Get Total number of matches
-    number_of_matches = 0
-    total_fthg = 0
-
-    for team in teams:
-        number_of_matches += Match.objects.filter(home_team=team).order_by('-date')[:19].count()
-    
-        # For those games get the number of FTHG and FTAG
-        #total_fthg += Match.objects.filter(home_team=team).aggregate(
-        #        Sum(F('fthg'))).value
-        #print(total_fthg)
-
-
-    total_fthg = Match.objects.aggregate(
-            Sum('fthg')).get('fthg__sum')
-
-    total_ftag = Match.objects.aggregate(
-            Sum('ftag')).get('ftag__sum')
-
-    # Get total home team home goals
-    home_team = Team.objects.get(id=home_team_id)
-    
-
-    # Get total away team home goals
-    away_team = Team.objects.get(id=away_team_id)
-    
-    return HttpResponse("{} {}".format(total_fthg, total_ftag))
-
-    """

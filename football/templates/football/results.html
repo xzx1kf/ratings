@@ -1,8 +1,19 @@
 {{ home_team }} vs {{ away_team }}
 <table>
-{% for p in probs %}
     <tr>
-        <td>{{ p }}</td>
+        <td></td>
+        <td>{{ home_team }}</td>
+        <td>vs</td>
+        <td>{{ away_team }}</td>
+        <td></td>
+    </tr>
+{% for h, a in probabilities %}
+    <tr>
+        <td>{{ forloop.counter0 }}
+        <td>{{ h }}</td>
+        <td>-</td>
+        <td>{{ a }}</td>
+        <td>{{ forloop.counter0 }}
     </tr>
 {% endfor %}
 </table>

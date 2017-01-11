@@ -9,6 +9,7 @@ class Division(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=200)
+    division = models.ForeignKey(Division)
 
     def __str__(self):
         return self.name
