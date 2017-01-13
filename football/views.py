@@ -23,6 +23,16 @@ class DetailView(generic.DetailView):
     model = Match
     template_name = 'football/detail.html'
 
+# This view should probably be the index page.
+def fixtures(request):
+    fixtures = Match.objects.filter(
+            completed=False).order_by(
+            'date', 'home_team__name')
+
+    return render(request, 'football/fixtures.html', {
+        'fixtures' : fixtures,
+        })
+
 def analysis(request):
 
 
@@ -38,7 +48,8 @@ def analysis(request):
 
             # Get league stats
             for team in teams:
-                q = Match.objects.filter(home_team=team)
+                q = Match.objects.exclude(completed=False)
+                q = q.filter(home_team=team)
                 q = q.filter(division=division)
                 q = q.order_by('-date')[:19]
                 league_total_games += q.count()
@@ -58,13 +69,15 @@ def analysis(request):
             home_team = get_object_or_404(Team, pk=request.POST.get('home_team'))
             away_team = get_object_or_404(Team, pk=request.POST.get('away_team'))
 
-            home_team_fthg = Match.objects.filter(home_team=home_team).order_by('-date')[:19].aggregate(
+            home_team_fthg = Match.objects.filter(
+                    home_team=home_team).exclude(completed=False).order_by(
+                            '-date')[:19].aggregate(
+                                    Sum('fthg')).get('fthg__sum')
+            away_team_fthg = Match.objects.filter(away_team=away_team).exclude(completed=False).order_by('-date')[:19].aggregate(
                     Sum('fthg')).get('fthg__sum')
-            away_team_fthg = Match.objects.filter(away_team=away_team).order_by('-date')[:19].aggregate(
-                    Sum('fthg')).get('fthg__sum')
-            home_team_ftag = Match.objects.filter(away_team=away_team).order_by('-date')[:19].aggregate(
+            home_team_ftag = Match.objects.filter(away_team=away_team).exclude(completed=False).order_by('-date')[:19].aggregate(
                     Sum('ftag')).get('ftag__sum')
-            away_team_ftag = Match.objects.filter(home_team=home_team).order_by('-date')[:19].aggregate(
+            away_team_ftag = Match.objects.filter(home_team=home_team).exclude(completed=False).order_by('-date')[:19].aggregate(
                     Sum('ftag')).get('ftag__sum')
 
             print("{} fthg: {}".format(home_team.name, home_team_fthg))
@@ -132,8 +145,8 @@ def analysis(request):
             print("away win probability: {}".format(away_win_probability))
 
             # home team last 5 home matches
-            home_team_last_5_matches = Match.objects.filter(home_team=home_team).order_by('-date')[:5]
-            away_team_last_5_matches = Match.objects.filter(away_team=away_team).order_by('-date')[:5]
+            home_team_last_5_matches = Match.objects.filter(home_team=home_team).exclude(completed=False).order_by('-date')[:5]
+            away_team_last_5_matches = Match.objects.filter(away_team=away_team).exclude(completed=False).order_by('-date')[:5]
             last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
     
             return render(request, 'football/results.html', {

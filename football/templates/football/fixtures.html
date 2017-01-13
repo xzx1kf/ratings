@@ -1,0 +1,26 @@
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Home Team</th>
+        <th>vs</th>
+        <th>Away Team</th>
+        <th>1</th>
+        <th>X</th>
+        <th>2</th>
+        <th>H</th>
+        <th>A</th>
+    </tr>
+    {% for m in fixtures %}
+    <tr>
+        <td>{{ m.date }}</td>
+        <td>{{ m.home_team.name }}</td>
+        <td></td>
+        <td>{{ m.away_team.name }}</td>
+        <td>todo</td>
+        <td>todo</td>
+        <td>todo</td>
+        <td>todo</td>
+        <td>todo</td>
+    </tr>
+    {% endfor %}
+</table>
