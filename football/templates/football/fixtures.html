@@ -8,6 +8,7 @@
         <th>X</th>
         <th>2</th>
         <th>H</th>
+        <th></th>
         <th>A</th>
     </tr>
     {% for m in fixtures %}
@@ -16,11 +17,12 @@
         <td>{{ m.home_team.name }}</td>
         <td></td>
         <td>{{ m.away_team.name }}</td>
-        <td>todo</td>
-        <td>todo</td>
-        <td>todo</td>
-        <td>todo</td>
-        <td>todo</td>
+        <td>{{ m.home_win|floatformat:"0" }}%</td>
+        <td>{{ m.draw|floatformat:"0" }}%</td>
+        <td>{{ m.away_win|floatformat:"0" }}%</td>
+        <td>{{ m.pfthg }}</td>
+        <td> - </td>
+        <td>{{ m.pftag }}</td>
     </tr>
     {% endfor %}
 </table>
