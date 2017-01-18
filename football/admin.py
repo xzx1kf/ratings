@@ -12,14 +12,33 @@ def calculate_team_stats(modelteam, request, queryset):
         q = q.exclude(completed=False)
         q = q.order_by('-date')[:19]
         team.fthg = q.aggregate(Sum('fthg')).get('fthg__sum')
+
+        q = Match.objects.filter(away_team=team)
+        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
+        q = q.exclude(completed=False)
+        q = q.order_by('-date')[:19]
         team.ftag = q.aggregate(Sum('ftag')).get('ftag__sum')
+
+        q = Match.objects.filter(home_team=team)
+        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
+        q = q.exclude(completed=False)
+        q = q.order_by('-date')[:19]
+        team.fthgc = q.aggregate(Sum('ftag')).get('ftag__sum')
+
+        q = Match.objects.filter(away_team=team)
+        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
+        q = q.exclude(completed=False)
+        q = q.order_by('-date')[:19]
+        team.ftagc = q.aggregate(Sum('fthg')).get('fthg__sum')
 
         # league stats
         d = Division.objects.get(pk=team.division.id)
 
         # calculate team attack and defense strengths
-        team.attack_strength = (team.fthg / 19) / (d.fthg / d.total_games)
-        team.defense_strength = (team.ftag / 19) / (d.ftag / d.total_games)
+        team.home_attack_strength = (team.fthg / 19) / (d.fthg / d.total_games)
+        team.home_defense_strength = (team.fthgc / 19) / (d.ftag / d.total_games)
+        team.away_attack_strength = (team.ftag / 19) / (d.ftag / d.total_games)
+        team.away_defense_strength = (team.ftagc / 19) / (d.fthg / d.total_games)
 
         team.save()
 
