@@ -10,6 +10,7 @@
         <th>H</th>
         <th></th>
         <th>A</th>
+        <th>Detail</th>
     </tr>
     {% for m in fixtures %}
     <tr>
@@ -20,9 +21,10 @@
         <td>{{ m.home_win|floatformat:"0" }}%</td>
         <td>{{ m.draw|floatformat:"0" }}%</td>
         <td>{{ m.away_win|floatformat:"0" }}%</td>
-        <td>{{ m.pfthg }}</td>
+        <td>{{ m.pfthg|floatformat:"0" }}</td>
         <td> - </td>
-        <td>{{ m.pftag }}</td>
+        <td>{{ m.pftag|floatformat:"0" }}</td>
+        <td><a href="{% url 'football:match' m.id %}">link</a></td>
     </tr>
     {% endfor %}
 </table>

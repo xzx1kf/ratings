@@ -41,41 +41,23 @@ class Match(models.Model):
     home_win = models.FloatField(default = 0)
     draw = models.FloatField(default=0)
     away_win = models.FloatField(default=0)
-    pfthg = models.IntegerField(default=0)
-    pftag = models.IntegerField(default=0)
+    pfthg = models.FloatField(default=0)
+    pftag = models.FloatField(default=0)
     completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        if self.fthg is not None and self.ftag is not None and self.ftr is not None:
+            self.completed = True
+        else:
+            self.completed = False
+
         if self.completed == True:
             super(Match, self).save(*args, **kwargs)
             return
         else:
             # calculate expected goals
-            # TODO: calculate expected goals.  
             home_goals = self.home_team.home_attack_strength * self.away_team.away_defense_strength * self.division.attack_strength
             away_goals = self.away_team.away_attack_strength * self.home_team.home_defense_strength * self.division.defense_strength
-
-            print("{} expected goals: {}".format(self.home_team.name, home_goals))
-            print("{} expected goals: {}".format(self.away_team.name, away_goals))
-            """
-            print("{} attack strength: {}".format(
-                self.home_team.name, 
-                self.home_team.attack_strength))
-            print("{} defense strength: {}".format(
-                self.away_team.name, 
-                self.away_team.defense_strength))
-            print("laegue attack strength: {}".format(
-                self.division.attack_strength))
-
-            print("{} attack strength: {}".format(
-                self.away_team.name, 
-                self.away_team.attack_strength))
-            print("{} defense strength: {}".format(
-                self.home_team.name, 
-                self.home_team.defense_strength))
-            print("laegue defense strength: {}".format(
-                self.division.defense_strength))
-            """
 
             home_team_probs = []
             away_team_probs = []
@@ -85,8 +67,8 @@ class Match(models.Model):
                 home_team_probs.append(round((poisson.pmf(i, home_goals) * 100), 1))
                 away_team_probs.append(round((poisson.pmf(i, away_goals) * 100), 1))
 
-            self.pfthg = round(home_goals, 0)
-            self.pftag = round(away_goals, 0)
+            self.pfthg = home_goals
+            self.pftag = away_goals
 
             # home win %
             self.home_win = 0

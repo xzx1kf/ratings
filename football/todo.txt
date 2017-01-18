@@ -1,4 +1,3 @@
-# use the completed parameter on the matches model relevant get requests
 # show future matches with 1x2 probabilites and predicted score on one page
   should have a clickable link so that you can see the detail for each match.
 

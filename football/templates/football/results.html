@@ -22,7 +22,7 @@
         {% endfor %}
     </tr>
 </table>
-<h3>Predicted Score: {{ home_goals }} - {{ away_goals }}</h3>
+<h3>Predicted Score: {{ home_goals|floatformat:"0" }} - {{ away_goals|floatformat:"0" }}</h3>
 <h3>Match Probabilities: {{ home_win_probability }}% {{ draw_probability }}% {{ away_win_probability }}%</h3>
 
 <table>

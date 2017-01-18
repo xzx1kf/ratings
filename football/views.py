@@ -17,7 +17,7 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """Return the last completed matches."""
-        return Match.objects.filter(completed=True).order_by('-date')[:5]
+        return Match.objects.filter(completed=True).order_by('-date')[:25]
 
 class DetailView(generic.DetailView):
     model = Match
@@ -31,6 +31,58 @@ def fixtures(request):
 
     return render(request, 'football/fixtures.html', {
         'fixtures' : fixtures,
+        })
+
+def match(request, match_id):
+    m = Match.objects.get(id=match_id)
+
+    home_team_probabilities = []
+    away_team_probabilities = []
+
+    for i in range(0,6):
+        home_team_probabilities.append(round((poisson.pmf(i, m.pfthg) * 100), 1))
+        away_team_probabilities.append(round((poisson.pmf(i, m.pftag) * 100), 1))
+
+    # calculate match probabilities
+    # home win %
+    home_win_probability = 0
+    for i in range(0,6):
+        for j in range(i+1,6):
+            home = home_team_probabilities[j]
+            away = away_team_probabilities[i]
+            home_win_probability += (home / 10) * (away / 10)
+
+    # draw %
+    draw_probability = 0
+    for i in range(0,6):
+        home = home_team_probabilities[i]
+        away = away_team_probabilities[i]
+        draw_probability += (home / 10) * (away / 10)
+
+    # away win %
+    away_win_probability = 0
+    for i in range(0,6):
+        for j in range(i+1,6):
+            home = home_team_probabilities[i]
+            away = away_team_probabilities[j]
+            away_win_probability += (home / 10) * (away / 10)
+
+    # home team last 5 home matches
+    home_team_last_5_matches = Match.objects.filter(home_team=m.home_team).exclude(completed=False).order_by('-date')[:5]
+    away_team_last_5_matches = Match.objects.filter(away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
+    last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
+
+    return render(request, 'football/results.html', {
+        'home_team'     : m.home_team,
+        'away_team'     : m.away_team,
+        'home_goals'    : m.pfthg,
+        'away_goals'    : m.pftag,
+        'home_win_probability'      : m.home_win,
+        'draw_probability'          : m.draw,
+        'away_win_probability'      : m.away_win,
+        'home_team_probabilities'   : home_team_probabilities,
+        'away_team_probabilities'   : away_team_probabilities,
+        'last_5_matches'            : last_5_matches,
         })
 
 def analysis(request):

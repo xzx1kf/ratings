@@ -77,7 +77,19 @@ class TeamAdmin(admin.ModelAdmin):
     ordering = ['name']
     actions = [calculate_team_stats]
 
+class MatchAdmin(admin.ModelAdmin):
+    #ordering = ['date']
+    list_filter = ('completed', )
+    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag', 'ftr' )
+    #readonly_fields = ('home_win', 'draw', 'away_win', 'pfthg', 'pftag')
+
+    def get_ordering(self, request):
+        if request.GET.get('completed__exact') == '0':
+            return ['date']
+        else:
+            return ['-date']
+
 # Register your models here.
 admin.site.register(Team, TeamAdmin)
-admin.site.register(Match)
+admin.site.register(Match, MatchAdmin)
 admin.site.register(Division, DivisionAdmin)
