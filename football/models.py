@@ -107,3 +107,24 @@ class Match(models.Model):
     class Meta:
         verbose_name_plural = "Matches"
         unique_together = ["date", "home_team", "away_team"]
+
+
+class Odds(models.Model):
+    match = models.ForeignKey(
+        Match, 
+        #limit_choices_to={'completed': False},
+    )
+    home = models.FloatField(default=0)
+    draw = models.FloatField(default=0)
+    away = models.FloatField(default=0)
+
+    def __str__(self):
+        return "%s - %s vs %s (%d,%d,%d)" % (
+                self.match.date.strftime('%d, %b %Y'), 
+                self.match.home_team, 
+                self.match.away_team,
+                self.home,
+                self.draw,
+                self.away)
+    class Meta:
+        verbose_name_plural = "Odds"

@@ -1,12 +1,10 @@
-# show future matches with 1x2 probabilites and predicted score on one page
-  should have a clickable link so that you can see the detail for each match.
-
-    home_team vs away_team 55% 26% 23% 2-1
-    home_team vs away_team 55% 26% 23% 2-1
-    home_team vs away_team 55% 26% 23% 2-1
-
 # change load_data.py to three separate scripts load_teams.py load_divisions.py
   and load_matches.py
 
 # sort out the required pages and their names. analysis should probably be
   something like football/match/06/detail
+
+# retreive odds automatically. 
+
+# add the other leagues. Or a filter on the fixtures page to select the 
+  different leagues.

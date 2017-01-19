@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum
 
-from .models import Match, Division, Team
+from .models import Match, Division, Team, Odds
 
 from datetime import datetime, timedelta
 
@@ -78,10 +78,8 @@ class TeamAdmin(admin.ModelAdmin):
     actions = [calculate_team_stats]
 
 class MatchAdmin(admin.ModelAdmin):
-    #ordering = ['date']
     list_filter = ('completed', )
     fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag', 'ftr' )
-    #readonly_fields = ('home_win', 'draw', 'away_win', 'pfthg', 'pftag')
 
     def get_ordering(self, request):
         if request.GET.get('completed__exact') == '0':
@@ -89,7 +87,14 @@ class MatchAdmin(admin.ModelAdmin):
         else:
             return ['-date']
 
+class OddsAdmin(admin.ModelAdmin):
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "match":
+            kwargs["queryset"] = Match.objects.filter(completed=False).order_by('date')
+            return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 # Register your models here.
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Division, DivisionAdmin)
+admin.site.register(Odds, OddsAdmin)

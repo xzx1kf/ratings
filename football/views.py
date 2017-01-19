@@ -4,8 +4,9 @@ from django.http import HttpResponseRedirect
 from django.db.models import Sum
 from django.urls import reverse
 from django.views import generic
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Match, Team, Division
+from .models import Match, Team, Division, Odds
 from .forms import AnalysisForm
 
 from scipy.stats import poisson
@@ -72,6 +73,21 @@ def match(request, match_id):
     away_team_last_5_matches = Match.objects.filter(away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
     last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
 
+    # get the odds for this match
+    try:
+        odds = Odds.objects.get(match=m)
+    except ObjectDoesNotExist:
+        odds = None
+
+    value = None
+    # calculate the expected value
+    if odds is not None:
+        home_value = odds.home * (home_win_probability / 100)
+        draw_value = odds.draw * (draw_probability / 100)
+        away_value = odds.away * (away_win_probability / 100)
+
+        value = (home_value, draw_value, away_value)
+
     return render(request, 'football/results.html', {
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
@@ -83,6 +99,8 @@ def match(request, match_id):
         'home_team_probabilities'   : home_team_probabilities,
         'away_team_probabilities'   : away_team_probabilities,
         'last_5_matches'            : last_5_matches,
+        'odds'                      : odds,
+        'value'                     : value,
         })
 
 def analysis(request):
