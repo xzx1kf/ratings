@@ -69,3 +69,19 @@
     </tr>
     {% endfor %}
 </table>
+<table>
+    {% for h, a in last_5_matches_ha %}
+    <tr>
+        <td>{{ h.date|date:"D d M Y" }}</td>
+        <td>{{ h.home_team.name }}</td>
+        <td>{{ h.fthg }}</td>
+        <td>{{ h.ftag }}</td>
+        <td>{{ h.away_team.name }}</td>
+        <td>{{ a.date|date:"D d M Y" }}</td>
+        <td>{{ a.home_team.name }}</td>
+        <td>{{ a.fthg }}</td>
+        <td>{{ a.ftag }}</td>
+        <td>{{ a.away_team.name }}</td>
+    </tr>
+    {% endfor %}
+</table>

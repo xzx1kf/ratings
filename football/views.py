@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.urls import reverse
 from django.views import generic
 from django.core.exceptions import ObjectDoesNotExist
@@ -90,6 +90,16 @@ def match(request, match_id):
     away_team_last_5_matches = Match.objects.filter(away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
     last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
 
+    ht_last_5_matches = Match.objects.filter(
+            Q(home_team=m.home_team) | 
+            Q(away_team=m.home_team)
+            ).order_by('-date').exclude(completed=False)[:5]
+    at_last_5_matches = Match.objects.filter(
+            Q(home_team=m.away_team) | 
+            Q(away_team=m.away_team)
+            ).order_by('-date').exclude(completed=False)[:5]
+    last_5_matches_ha = zip(ht_last_5_matches, at_last_5_matches)
+
     # get the odds for this match
     try:
         odds = Odds.objects.get(match=m)
@@ -118,6 +128,7 @@ def match(request, match_id):
         'last_5_matches'            : last_5_matches,
         'odds'                      : odds,
         'value'                     : value,
+        'last_5_matches_ha'         : last_5_matches_ha, 
         })
 
 def analysis(request):
