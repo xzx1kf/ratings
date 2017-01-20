@@ -91,7 +91,7 @@ class MatchAdmin(admin.ModelAdmin):
 class OddsAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "match":
-            kwargs["queryset"] = Match.objects.filter(completed=False).order_by('date')
+            kwargs["queryset"] = Match.objects.filter(completed=False).order_by('date', 'home_team')
             return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Register your models here.
