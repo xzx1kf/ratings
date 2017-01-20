@@ -1,3 +1,9 @@
+<form actions="{% url 'football:fixtures' %}" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+
+</form>
 <table>
     <tr>
         <th>Date</th>

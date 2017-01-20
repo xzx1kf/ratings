@@ -7,7 +7,7 @@ from django.views import generic
 from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Match, Team, Division, Odds
-from .forms import AnalysisForm
+from .forms import AnalysisForm, LeagueForm
 
 from scipy.stats import poisson
 
@@ -26,13 +26,30 @@ class DetailView(generic.DetailView):
 
 # This view should probably be the index page.
 def fixtures(request):
-    fixtures = Match.objects.filter(
-            completed=False).order_by(
-            'date', 'home_team__name')
 
+    fixtures = []
+    if request.method == 'POST':
+        form = LeagueForm(request.POST)
+        if form.is_valid():
+            division = get_object_or_404(Division, pk=request.POST.get('division'))
+            fixtures = Match.objects.filter(
+                    completed=False, division=division).order_by(
+                    'date', 'home_team__name')
+    else:
+        division = Division.objects.first()
+        form = LeagueForm(initial = { 'division': division } )
+        fixtures = Match.objects.filter(
+                completed=False, 
+                division=division,
+            ).order_by(
+                'date', 
+                'home_team__name'
+            )
     return render(request, 'football/fixtures.html', {
-        'fixtures' : fixtures,
-        })
+        'fixtures'  : fixtures,
+        'form'      : form,
+    })
+
 
 def match(request, match_id):
     m = Match.objects.get(id=match_id)
