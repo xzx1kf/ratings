@@ -25,7 +25,9 @@ class Command(BaseCommand):
                         except IntegrityError as e:
                             t = Team.objects.get(name=team.name)
                             t.division = team.division
-                            self.stdout.write("Changing division.")
+                            self.stdout.write("{} - {}".format(
+                                t.name,
+                                t.division))
                             t.save()
                             pass
                 except (csv.Error) as e:
