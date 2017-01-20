@@ -5,7 +5,7 @@ from scipy.stats import poisson
 
 # Create your models here.
 class Division(models.Model):
-    name = models.CharField(max_length=2)
+    name = models.CharField(max_length=2, unique=True)
     total_games = models.IntegerField(default=1)
     attack_strength = models.FloatField(default=1)
     defense_strength = models.FloatField(default=1)
@@ -16,7 +16,7 @@ class Division(models.Model):
         return self.name
 
 class Team(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     division = models.ForeignKey(Division)
     fthg = models.IntegerField(default=0)
     ftag = models.IntegerField(default=0)
@@ -28,7 +28,7 @@ class Team(models.Model):
     away_defense_strength = models.FloatField(default=0)
 
     def __str__(self):
-        return self.name
+        return "{}, {}".format(self.name, self.division)
 
 class Match(models.Model):
     division = models.ForeignKey(Division)

@@ -75,6 +75,7 @@ class DivisionAdmin(admin.ModelAdmin):
 
 class TeamAdmin(admin.ModelAdmin):
     ordering = ['name']
+    list_filter = ('division',)
     actions = [calculate_team_stats]
 
 class MatchAdmin(admin.ModelAdmin):
