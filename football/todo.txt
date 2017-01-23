@@ -6,5 +6,6 @@
 
 # retreive odds automatically. 
 
-# add the other leagues. Or a filter on the fixtures page to select the 
-  different leagues.
+# add last 5 results to team title, as in WWLWD.
+
+# Tidy up the web page for a match.

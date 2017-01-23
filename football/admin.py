@@ -79,19 +79,22 @@ class TeamAdmin(admin.ModelAdmin):
     actions = [calculate_team_stats]
 
 class MatchAdmin(admin.ModelAdmin):
-    list_filter = ('completed', )
-    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag', 'ftr' )
+    list_filter = ('completed', 'division')
+    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag' )
+    list_select_related = ('division', 'home_team',)
 
     def get_ordering(self, request):
         if request.GET.get('completed__exact') == '0':
-            return ['date']
+            return ['date', 'division__name', 'home_team__name']
         else:
-            return ['-date']
+            return ['-date', 'division__name', 'home_team__name']
 
 class OddsAdmin(admin.ModelAdmin):
+    list_filter = ('match__division',)
+    ordering = ['match__date', 'match__division__name', 'match__home_team__name']
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "match":
-            kwargs["queryset"] = Match.objects.filter(completed=False).order_by('date', 'home_team')
+            kwargs["queryset"] = Match.objects.filter(completed=False) #.order_by('-division', '-date', 'home_team')
             return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Register your models here.

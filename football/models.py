@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 
 from scipy.stats import poisson
+from smart_selects.db_fields import GroupedForeignKey, ChainedForeignKey
 
 # Create your models here.
 class Division(models.Model):
@@ -33,8 +34,20 @@ class Team(models.Model):
 class Match(models.Model):
     division = models.ForeignKey(Division)
     date = models.DateTimeField('match date')
-    home_team = models.ForeignKey(Team, related_name='home_team')
-    away_team = models.ForeignKey(Team, related_name='away_team')
+    #home_team = models.ForeignKey(Team, related_name='home_team')
+    home_team = ChainedForeignKey(
+            Team, 
+            chained_field="division", 
+            chained_model_field="division", 
+            show_all=False, 
+            related_name='home_team')
+    away_team = ChainedForeignKey(
+            Team, 
+            chained_field="division", 
+            chained_model_field="division", 
+            show_all=False, 
+            related_name='away_team')
+    #away_team = models.ForeignKey(Team, related_name='away_team')
     fthg = models.IntegerField(blank=True, null=True)
     ftag = models.IntegerField(blank=True, null=True)
     ftr = models.CharField(max_length=1, blank=True, default="")
@@ -46,12 +59,19 @@ class Match(models.Model):
     completed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if self.fthg is not None and self.ftag is not None and self.ftr is not None:
+        if self.fthg is not None and self.ftag is not None:
             self.completed = True
         else:
             self.completed = False
 
         if self.completed == True:
+            if self.fthg > self.ftag:
+                self.ftr = 'H'
+            elif self.ftag > self.fthg:
+                self.ftr = 'A'
+            else:
+                self.ftr = 'D'
+
             super(Match, self).save(*args, **kwargs)
             return
         else:
