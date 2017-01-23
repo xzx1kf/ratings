@@ -9,3 +9,5 @@
 # add last 5 results to team title, as in WWLWD.
 
 # Tidy up the web page for a match.
+
+# Add current league position
