@@ -148,3 +148,28 @@ class Odds(models.Model):
                 self.away)
     class Meta:
         verbose_name_plural = "Odds"
+
+
+class League(models.Model):
+    division = models.ForeignKey(Division)
+    active = models.BooleanField(default=False)
+    name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+class League_Entry(models.Model):
+    table = models.ForeignKey(League)
+    team = models.ForeignKey(Team)
+    played = models.IntegerField(default=0)
+    won = models.IntegerField(default=0)
+    drawn = models.IntegerField(default=0)
+    lost = models.IntegerField(default=0)
+    goals_for = models.IntegerField(default=0)
+    goals_against = models.IntegerField(default=0)
+    goal_diff = models.IntegerField(default=0)
+    points = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.team.name
+

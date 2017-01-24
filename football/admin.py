@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum
 
-from .models import Match, Division, Team, Odds
+from .models import Match, Division, Team, Odds, League, League_Entry
 
 from datetime import datetime, timedelta
 
@@ -102,3 +102,5 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Division, DivisionAdmin)
 admin.site.register(Odds, OddsAdmin)
+admin.site.register(League)
+admin.site.register(League_Entry)

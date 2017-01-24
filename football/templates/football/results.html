@@ -34,6 +34,11 @@
 
 <table>
     <tr>
+        <th></th>
+        <th>1</th>
+        <th>X</th>
+        <th>2</th>
+    <tr>
         <td>Match Probabilities:</td>
         <td>{{ home_win_probability }}%</td>
         <td>{{ draw_probability }}%</td>
@@ -54,6 +59,21 @@
 </table>
 
 <table>
+    <tr>
+        <th colspan="10">Last 5 home/away matches</th>
+    </tr>
+    <tr>
+        <th>Date</th>
+        <th>Home Team</th>
+        <th>HG</th>
+        <th>AW</th>
+        <th>Away Team</th>
+        <th>Date</th>
+        <th>Home Team</th>
+        <th>HG</th>
+        <th>AG</th>
+        <th>Away Team</th>
+    </tr>
     {% for h, a in last_5_matches %}
     <tr>
         <td>{{ h.date|date:"D d M Y" }}</td>
@@ -70,6 +90,21 @@
     {% endfor %}
 </table>
 <table>
+    <tr>
+        <th colspan="10">Last 5 matches</th>
+    </tr>
+    <tr>
+        <th>Date</th>
+        <th>Home Team</th>
+        <th>HG</th>
+        <th>AW</th>
+        <th>Away Team</th>
+        <th>Date</th>
+        <th>Home Team</th>
+        <th>HG</th>
+        <th>AG</th>
+        <th>Away Team</th>
+    </tr>
     {% for h, a in last_5_matches_ha %}
     <tr>
         <td>{{ h.date|date:"D d M Y" }}</td>
@@ -85,3 +120,5 @@
     </tr>
     {% endfor %}
 </table>
+
+{% include "football/mini_league_table.html" %}

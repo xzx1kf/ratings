@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views import generic
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Match, Team, Division, Odds
+from .models import Match, Team, Division, Odds, League, League_Entry
 from .forms import AnalysisForm, LeagueForm
 
 from scipy.stats import poisson
@@ -115,6 +115,10 @@ def match(request, match_id):
 
         value = (home_value, draw_value, away_value)
 
+    # Get the league table associated with this match
+    league_table = League.objects.get(division=m.home_team.division, active=True)
+    league_table = League_Entry.objects.filter(table=league_table).order_by('-points', '-goal_diff')
+    
     return render(request, 'football/results.html', {
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
@@ -129,6 +133,7 @@ def match(request, match_id):
         'odds'                      : odds,
         'value'                     : value,
         'last_5_matches_ha'         : last_5_matches_ha, 
+        'league_table'              : league_table,
         })
 
 def analysis(request):
