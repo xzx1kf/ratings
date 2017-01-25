@@ -65,12 +65,40 @@ class Match(models.Model):
             self.completed = False
 
         if self.completed == True:
+            # Add this match to the league table standings
+            league = League.objects.get(active=True, division=self.division)
+            home_team = League_Entry.objects.get(table=league, team=self.home_team)
+            away_team = League_Entry.objects.get(table=league, team=self.away_team)
+
             if self.fthg > self.ftag:
                 self.ftr = 'H'
+                home_team.points += 3
+                home_team.won += 1
+                away_team.lost += 1
             elif self.ftag > self.fthg:
                 self.ftr = 'A'
+                away_team.points += 3
+                home_team_entry.lost += 1
+                away_team_entry.won += 1
             else:
                 self.ftr = 'D'
+                home_team.points += 1
+                away_team.points += 1
+                home_team_entry.drawn += 1
+                away_team_entry.drawn += 1
+
+            home_team.played += 1
+            home_team.goals_for += self.fthg
+            home_team.goals_against += self.ftag
+            home_team.goal_diff = home_team.goals_for - home_team.goals_against
+
+            away_team.played += 1
+            away_team.goals_for += self.ftag
+            away_team.goals_against += self.fthg
+            away_team.goal_diff = away_team_entry.goals_for - away_team_entry.goals_against
+            
+            away_team.save()
+            home_team.save()
 
             super(Match, self).save(*args, **kwargs)
             return
