@@ -405,3 +405,47 @@ table.normaltable tbody tr td span.icon_sport {
 table.normaltable tr.header0 {
 	background:#000
 }
+
+table td.last-10-games {
+    width: 130px;
+}
+
+table td.last-10-games li {
+    color: #fff;
+    display: block;
+    float: left;
+    font-size: .6em;
+    height: 16px;
+    line-height: 1.4;
+    margin-right: 2px;
+    margin-bottom: 0;
+    padding: 0;
+    text-align: center;
+    width: 11px;
+}
+
+table td.last-10-games span {
+    display: block;
+    direction: rtl;
+    text-indent: -9999px;
+    height: 4px;
+    width: 11px;
+    position: relative;
+    top: 6px;
+}
+
+table td.last-10-games li.W span {
+    background-color: #2c7e00;
+}
+
+table td.last-10-games li.D span {
+    background-color: #919191;
+}
+
+table td.last-10-games li.L span {
+    background-color: #a8160c;
+}
+
+li.W span {
+    background-color: #2c7e00;
+}

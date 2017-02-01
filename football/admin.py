@@ -90,7 +90,7 @@ class MatchAdmin(admin.ModelAdmin):
             return ['-date', 'division__name', 'home_team__name']
 
 class OddsAdmin(admin.ModelAdmin):
-    list_filter = ('match__division',)
+    list_filter = ('match__division', 'match__completed')
     ordering = ['match__date', 'match__division__name', 'match__home_team__name']
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "match":
