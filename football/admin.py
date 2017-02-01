@@ -97,10 +97,14 @@ class OddsAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Match.objects.filter(completed=False) #.order_by('-division', '-date', 'home_team')
             return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+class League_EntryAdmin(admin.ModelAdmin):
+    list_filter = ('table',)
+    ordering = ['-points']
+
 # Register your models here.
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Division, DivisionAdmin)
 admin.site.register(Odds, OddsAdmin)
 admin.site.register(League)
-admin.site.register(League_Entry)
+admin.site.register(League_Entry, League_EntryAdmin)

@@ -78,14 +78,14 @@ class Match(models.Model):
             elif self.ftag > self.fthg:
                 self.ftr = 'A'
                 away_team.points += 3
-                home_team_entry.lost += 1
-                away_team_entry.won += 1
+                home_team.lost += 1
+                away_team.won += 1
             else:
                 self.ftr = 'D'
                 home_team.points += 1
                 away_team.points += 1
-                home_team_entry.drawn += 1
-                away_team_entry.drawn += 1
+                home_team.drawn += 1
+                away_team.drawn += 1
 
             home_team.played += 1
             home_team.goals_for += self.fthg
@@ -95,7 +95,7 @@ class Match(models.Model):
             away_team.played += 1
             away_team.goals_for += self.ftag
             away_team.goals_against += self.fthg
-            away_team.goal_diff = away_team_entry.goals_for - away_team_entry.goals_against
+            away_team.goal_diff = away_team.goals_for - away_team.goals_against
             
             away_team.save()
             home_team.save()
