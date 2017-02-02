@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from .models import Match, Division, Team, Odds, League, League_Entry
 
@@ -69,6 +69,76 @@ def calculate_stats(modeldivision, request, queryset):
 
 calculate_stats.short_description = "Calculate selected league stats"
 
+
+def refresh_league(modelleague, request, queryset):
+    for league in queryset:
+        league_entries = League_Entry.objects.filter(table=league)
+
+        for entry in league_entries:
+            matches = Match.objects.filter(date__gte=league.start_date)
+            matches = matches.filter(
+                    Q(home_team=entry.team) |
+                    Q(away_team=entry.team)).order_by('-date')
+            matches = matches.filter(completed=True)
+
+            entry.played = 0
+            entry.won = 0 
+            entry.drawn = 0 
+            entry.lost = 0
+            entry.goals_for = 0
+            entry.goals_against = 0
+            entry.goal_diff = 0
+            entry.points = 0
+
+            for m in matches:
+                if m.home_team == entry.team: 
+                    if m.ftr == 'H':
+                        entry.won += 1
+                        entry.points += 3
+                    elif m.ftr == 'D':
+                        entry.drawn += 1
+                        entry.points += 1
+                    elif m.ftr == 'A':
+                        entry.lost += 1
+
+                    entry.goals_for += m.fthg
+                    entry.goals_against += m.ftag
+                elif m.away_team == entry.team:
+                    if m.ftr == 'A':
+                        entry.won += 1
+                        entry.points += 3
+                    elif m.ftr == 'D':
+                        entry.drawn += 1
+                        entry.points += 1
+                    elif m.ftr == 'H':
+                        entry.lost += 1
+
+                    entry.goals_for += m.ftag
+                    entry.goals_against += m.fthg
+
+            last10 = matches[:10]
+            for m in last10:
+                if m.home_team==entry.team:
+                    if m.ftr=='H':
+                        entry.record = 'W' + entry.record[0:9]
+                    elif m.ftr=='D':
+                        entry.record = 'D' + entry.record[0:9]
+                    else:
+                        entry.record = 'L' + entry.record[0:9]
+                else:
+                    if m.ftr=='H':
+                        entry.record = 'L' + entry.record[0:9]
+                    elif m.ftr=='D':
+                        entry.record = 'D' + entry.record[0:9]
+                    else:
+                        entry.record = 'W' + entry.record[0:9]
+
+            entry.goal_diff = entry.goals_for - entry.goals_against
+            entry.played = matches.count()
+
+            entry.save()
+
+
 class DivisionAdmin(admin.ModelAdmin):
     ordering = ['name']
     actions = [calculate_stats]
@@ -97,6 +167,9 @@ class OddsAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Match.objects.filter(completed=False) #.order_by('-division', '-date', 'home_team')
             return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+class LeagueAdmin(admin.ModelAdmin):
+    actions = [refresh_league]
+
 class League_EntryAdmin(admin.ModelAdmin):
     list_filter = ('table',)
     ordering = ['-points']
@@ -106,5 +179,5 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Division, DivisionAdmin)
 admin.site.register(Odds, OddsAdmin)
-admin.site.register(League)
+admin.site.register(League, LeagueAdmin)
 admin.site.register(League_Entry, League_EntryAdmin)

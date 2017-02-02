@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Sum
+from django.utils import timezone
 
 from scipy.stats import poisson
 from smart_selects.db_fields import GroupedForeignKey, ChainedForeignKey
@@ -12,9 +13,10 @@ class Division(models.Model):
     defense_strength = models.FloatField(default=1)
     fthg = models.IntegerField(default=1)
     ftag = models.IntegerField(default=1)
+    display_name = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class Team(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -27,7 +29,7 @@ class Team(models.Model):
     home_defense_strength = models.FloatField(default=0)
     away_attack_strength = models.FloatField(default=0)
     away_defense_strength = models.FloatField(default=0)
-    record = models.CharField(max_length=5, default="")
+    record = models.CharField(max_length=10, default="")
 
     def __str__(self):
         return "{}, {}".format(self.name, self.division)
@@ -77,21 +79,24 @@ class Match(models.Model):
                 home_team.won += 1
                 away_team.lost += 1
 
-                home_team.record = "W" + home_team.record[0:4] 
-                away_team.record = "L" + away_team.record[0:4]
+                self.home_team.record = "W" + self.home_team.record[0:9] 
+                self.away_team.record = "L" + self.away_team.record[0:9]
             elif self.ftag > self.fthg:
                 self.ftr = 'A'
                 away_team.points += 3
                 home_team.lost += 1
                 away_team.won += 1
+
+                self.home_team.record = "L" + self.home_team.record[0:9] 
+                self.away_team.record = "W" + self.away_team.record[0:9]
             else:
                 self.ftr = 'D'
                 home_team.points += 1
                 away_team.points += 1
                 home_team.drawn += 1
                 away_team.drawn += 1
-                home_team.record = "D" + home_team.record[0:4] 
-                away_team.record = "D" + away_team.record[0:4]
+                self.home_team.record = "D" + self.home_team.record[0:9] 
+                self.away_team.record = "D" + self.away_team.record[0:9]
 
             home_team.played += 1
             home_team.goals_for += self.fthg
@@ -105,6 +110,8 @@ class Match(models.Model):
             
             away_team.save()
             home_team.save()
+            self.home_team.save()
+            self.away_team.save()
 
             super(Match, self).save(*args, **kwargs)
             return
@@ -188,6 +195,7 @@ class League(models.Model):
     division = models.ForeignKey(Division)
     active = models.BooleanField(default=False)
     name = models.CharField(max_length=200)
+    start_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name
@@ -203,6 +211,7 @@ class League_Entry(models.Model):
     goals_against = models.IntegerField(default=0)
     goal_diff = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
+    record = models.CharField(max_length=10, default="")
 
     def __str__(self):
         return self.team.name

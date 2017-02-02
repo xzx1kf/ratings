@@ -117,7 +117,9 @@ def match(request, match_id):
 
     # Get the league table associated with this match
     league_table = League.objects.get(division=m.home_team.division, active=True)
-    league_table = League_Entry.objects.filter(table=league_table).order_by('-points', '-goal_diff')
+    league_entry = League_Entry.objects.filter(table=league_table).order_by('-points', '-goal_diff')
+    home_entry = League_Entry.objects.get(table=league_table, team=m.home_team)
+    away_entry = League_Entry.objects.get(table=league_table, team=m.away_team)
     
     return render(request, 'football/results.html', {
         'home_team'     : m.home_team,
@@ -133,7 +135,35 @@ def match(request, match_id):
         'odds'                      : odds,
         'value'                     : value,
         'last_5_matches_ha'         : last_5_matches_ha, 
-        'league_table'              : league_table,
+        'league_table'              : league_entry,
+        'home_entry'                : home_entry,
+        'away_entry'                : away_entry,
+        })
+
+def tables(request):
+    league_table = []
+    if request.method == 'POST':
+        form = LeagueForm(request.POST)
+        if form.is_valid():
+            division = get_object_or_404(Division, pk=request.POST.get('division'))
+            league = League.objects.get(division=division, active=True)
+            league_table = League_Entry.objects.filter(table=league).order_by(
+                '-points', '-goal_diff')
+    else:
+        division = Division.objects.first()
+        form = LeagueForm(initial = { 'division': division } )
+        league = League.objects.get(division=division, active=True)
+        league_table = League_Entry.objects.filter(table=league).order_by(
+            '-points', '-goal_diff')
+
+    #division = Division.objects.filter(name='E0')
+    #league = League.objects.get(division=division, active=True)
+    #league_table = League_Entry.objects.filter(table=league).order_by(
+    #        '-points', '-goal_diff')
+
+    return render(request, 'football/tables.html', {
+        'league_table'  : league_table,
+        'form'      : form,
         })
 
 def analysis(request):

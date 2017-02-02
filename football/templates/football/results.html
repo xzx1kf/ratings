@@ -10,7 +10,7 @@
     <tr>
         <td class="last-10-games">
             <ol>
-            {% for r in home_team.record %}
+            {% for r in home_entry.record %}
                 <li class={{r}}>
                     <span>{{ r }}</span>
                 </li>
@@ -20,7 +20,7 @@
         <td></td>
         <td class="last-10-games">
             <ol>
-            {% for r in away_team.record %}
+            {% for r in away_entry.record %}
                 <li class={{r}}>
                     <span>{{ r }}</span>
                 </li>

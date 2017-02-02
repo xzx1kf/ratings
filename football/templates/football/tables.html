@@ -1,0 +1,51 @@
+
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'football/style.css' %}" />
+
+<form actions="{% url 'football:fixtures' %}" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+
+<table class="normaltable">
+    <thead>
+        <tr>
+            <th class="pos first ">Pos</th>
+            <th class="team ">Team</th>
+            <th class="played ">P</th>
+            <th class="won ">W</th>
+            <th class="drawn">D</th>
+            <th class="lost ">L</th>
+            <th class="for ">F</th>
+            <th class="against ">A</th>
+            <th class="diff unsigned ">GD</th>
+            <th class="points last ">Pts</th>
+            <th class="points last ">Last 10 games</th>
+        </tr>
+    </thead>
+    {% for entry in league_table %}
+    <tr class="{% cycle ' even ' ' odd ' %}">
+        <td class="pos first ">{{ forloop.counter }}</td>
+        <td class="team ">{{ entry.team.name }}</td>
+        <td class="played ">{{ entry.played }}</td>
+        <td class="won ">{{ entry.won }}</td>
+        <td class="drawn ">{{ entry.drawn }}</td>
+        <td class="lost ">{{ entry.lost }}</td>
+        <td class="for ">{{ entry.goals_for }}</td>
+        <td class="against ">{{ entry.goals_against }}</td>
+        <td class="diff unsigned ">{{ entry.goal_diff }}</td>
+        <td class="points last ">{{ entry.points }}</td>
+        <td class="last-10-games">
+            <ol>
+            {% for r in entry.record %}
+                <li class={{r}}>
+                    <span>{{ r }}</span>
+                </li>
+            {% endfor %}
+            </ol>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
