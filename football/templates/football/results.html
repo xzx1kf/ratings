@@ -89,6 +89,29 @@
     </tr>
 </table>
 
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Under 2.5</th>
+            <th>Over 2.5</th>
+        </tr>
+    </thead>
+    <tr>
+        <td>Probability</td>
+        <td>{{ under|floatformat:"1" }}%</td>
+        <td>{{ over|floatformat:"1" }}%</td>
+    </tr>
+    <tr>
+        <td>Expected Value</td>
+        {% for v in uo_value %}
+            <td>{{ v|floatformat:"2" }}</td>
+        {% endfor %}
+    </tr>
+
+</table>
+
+
 <div>
 <table class="normaltable">
     <thead>

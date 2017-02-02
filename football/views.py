@@ -120,6 +120,13 @@ def match(request, match_id):
     league_entry = League_Entry.objects.filter(table=league_table).order_by('-points', '-goal_diff')
     home_entry = League_Entry.objects.get(table=league_table, team=m.home_team)
     away_entry = League_Entry.objects.get(table=league_table, team=m.away_team)
+
+    # calculate the expected value of the under/over market
+    if odds is not None:
+        under_value = odds.under * (m.under / 100)
+        over_value = odds.over * (m.over / 100)
+
+        uo_value = (under_value, over_value)
     
     return render(request, 'football/results.html', {
         'home_team'     : m.home_team,
@@ -138,6 +145,9 @@ def match(request, match_id):
         'league_table'              : league_entry,
         'home_entry'                : home_entry,
         'away_entry'                : away_entry,
+        'under'                     : m.under,
+        'over'                      : m.over,
+        'uo_value'                  : uo_value,
         })
 
 def tables(request):
@@ -155,11 +165,6 @@ def tables(request):
         league = League.objects.get(division=division, active=True)
         league_table = League_Entry.objects.filter(table=league).order_by(
             '-points', '-goal_diff')
-
-    #division = Division.objects.filter(name='E0')
-    #league = League.objects.get(division=division, active=True)
-    #league_table = League_Entry.objects.filter(table=league).order_by(
-    #        '-points', '-goal_diff')
 
     return render(request, 'football/tables.html', {
         'league_table'  : league_table,

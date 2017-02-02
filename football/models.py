@@ -60,6 +60,8 @@ class Match(models.Model):
     pfthg = models.FloatField(default=0)
     pftag = models.FloatField(default=0)
     completed = models.BooleanField(default=False)
+    under = models.FloatField(default=0)
+    over = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
         if self.fthg is not None and self.ftag is not None:
@@ -131,6 +133,9 @@ class Match(models.Model):
             self.pfthg = home_goals
             self.pftag = away_goals
 
+            under = 0
+            over = 0
+
             # home win %
             self.home_win = 0
             self.away_win = 0
@@ -140,6 +145,14 @@ class Match(models.Model):
                     home = home_team_probs[j]
                     away = away_team_probs[i]
                     self.home_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                        print("Under: {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                    else:
+                        over += (home / 10) * (away / 10)
+                        print("Over:  {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+
             self.home_win = round(self.home_win, 1)
             
             # draw %
@@ -147,6 +160,14 @@ class Match(models.Model):
                 home = home_team_probs[i]
                 away = away_team_probs[i]
                 self.draw += (home / 10) * (away / 10)
+
+                if i < 2:
+                    under += (home / 10) * (away / 10)
+                    print("Under: {}-{} = {}".format(i,i,((home / 10) * (away / 10))))
+                else:
+                    over += (home / 10) * (away / 10)
+                    print("Over:  {}-{} = {}".format(i,i,((home / 10) * (away / 10))))
+
             self.draw = round(self.draw, 1)
 
             # away win %
@@ -155,7 +176,19 @@ class Match(models.Model):
                     home = home_team_probs[i]
                     away = away_team_probs[j]
                     self.away_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                        print("Under: {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                    else:
+                        over += (home / 10) * (away / 10)
+                        print("Over:  {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+
             self.away_win = round(self.away_win, 1)
+
+            self.under = under
+            self.over = over
+            print("Under: {} Over: {}".format(under, over))
             
             super(Match, self).save(*args, **kwargs)
 
@@ -178,6 +211,8 @@ class Odds(models.Model):
     home = models.FloatField(default=0)
     draw = models.FloatField(default=0)
     away = models.FloatField(default=0)
+    under = models.FloatField(default=0)
+    over = models.FloatField(default=0)
 
     def __str__(self):
         return "%s - %s vs %s (%d,%d,%d)" % (
