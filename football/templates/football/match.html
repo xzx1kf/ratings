@@ -1,1 +1,194 @@
-{{ match.home_team }} vs {{ match.away_team }}
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'football/style.css' %}" />
+
+<table>
+    <tr>
+        <td><h4>{{ home_team.name }}</h4></td>
+        <td><h4>vs</h4></td>
+        <td><h4>{{ away_team.name }}</h4></td>
+    <tr>
+        <td class="last-10-games">
+            <ol>
+            {% for r in home_entry.record %}
+                <li class={{r}}>
+                    <span>{{ r }}</span>
+                </li>
+            {% endfor %}
+            </ol>
+        </td>
+        <td></td>
+        <td class="last-10-games">
+            <ol>
+            {% for r in away_entry.record %}
+                <li class={{r}}>
+                    <span>{{ r }}</span>
+                </li>
+            {% endfor %}
+            </ol>
+        </td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th>Goals</th>
+        <th>0</th>
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+        <th>4</th>
+        <th>5</th>
+    </tr>
+    <tr>
+        <td>{{ home_team.name }}</td>
+        {% for p in home_team_probabilities %}
+        <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td>{{ away_team.name }}</td>
+        {% for p in away_team_probabilities %}
+        <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td>Predicted Score:</td>
+        <td>{{ home_goals|floatformat:"0" }}</td>
+        <td>-</td>
+        <td>{{ away_goals|floatformat:"0" }}</td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th></th>
+        <th>1</th>
+        <th>X</th>
+        <th>2</th>
+    <tr>
+        <td>Probability:</td>
+        <td>{{ home_win_probability }}%</td>
+        <td>{{ draw_probability }}%</td>
+        <td>{{ away_win_probability }}%</td>
+    </tr>
+    <tr>
+        <td>Odds:</td>
+        <td>{{ odds.home }}</td>
+        <td>{{ odds.draw }}</td>
+        <td>{{ odds.away }}</td>
+    </tr>
+    <tr>
+        <td>Expected Value:</td>
+        {% for v in value %}
+            <td>{{ v|floatformat:"2" }}</td>
+        {% endfor %}
+    </tr>
+</table>
+
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Over 2.5</th>
+            <th>Under 2.5</th>
+        </tr>
+    </thead>
+    <tr>
+        <td>Probability:</td>
+        <td>{{ over|floatformat:"1" }}%</td>
+        <td>{{ under|floatformat:"1" }}%</td>
+    </tr>
+    <tr>
+        <td>Odds:</td>
+        <td>{{ odds.over }}</td>
+        <td>{{ odds.under }}</td>
+    </tr>
+    <tr>
+        <td>Expected Value:</td>
+        {% for v in uo_value %}
+            <td>{{ v|floatformat:"2" }}</td>
+        {% endfor %}
+    </tr>
+
+</table>
+
+
+<div>
+<table class="normaltable">
+    <thead>
+        <tr>
+            <th colspan="10">Last 5 home/away matches</th>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <th>Home Team</th>
+            <th>HG</th>
+            <th>AW</th>
+            <th>Away Team</th>
+            <th>Date</th>
+            <th>Home Team</th>
+            <th>HG</th>
+            <th>AG</th>
+            <th>Away Team</th>
+        </tr>
+    </thead>
+    {% for h, a in last_5_matches %}
+    <tr class="{% cycle ' even ' ' odd ' %}">
+        <td>{{ h.date|date:"D d M Y" }}</td>
+        <td>{{ h.home_team.name }}</td>
+        <td>{{ h.fthg }}</td>
+        <td>{{ h.ftag }}</td>
+        <td>{{ h.away_team.name }}</td>
+        <td>{{ a.date|date:"D d M Y" }}</td>
+        <td>{{ a.home_team.name }}</td>
+        <td>{{ a.fthg }}</td>
+        <td>{{ a.ftag }}</td>
+        <td>{{ a.away_team.name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+<div>
+<table class="normaltable">
+    <thead>
+        <tr>
+            <th colspan="10">Last 5 matches</th>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <th>Home Team</th>
+            <th>HG</th>
+            <th>AW</th>
+            <th>Away Team</th>
+            <th>Date</th>
+            <th>Home Team</th>
+            <th>HG</th>
+            <th>AG</th>
+            <th>Away Team</th>
+        </tr>
+    </thead>
+    {% for h, a in last_5_matches_ha %}
+    <tr class="{% cycle ' even ' ' odd ' %}">
+        <td>{{ h.date|date:"D d M Y" }}</td>
+        <td>{{ h.home_team.name }}</td>
+        <td>{{ h.fthg }}</td>
+        <td>{{ h.ftag }}</td>
+        <td>{{ h.away_team.name }}</td>
+        <td>{{ a.date|date:"D d M Y" }}</td>
+        <td>{{ a.home_team.name }}</td>
+        <td>{{ a.fthg }}</td>
+        <td>{{ a.ftag }}</td>
+        <td>{{ a.away_team.name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+<div>
+    {% include "football/mini_league_table.html" %}
+</div>
