@@ -138,7 +138,6 @@ def refresh_league(modelleague, request, queryset):
 
             entry.save()
 
-
 class DivisionAdmin(admin.ModelAdmin):
     ordering = ['name']
     actions = [calculate_stats]
@@ -150,7 +149,7 @@ class TeamAdmin(admin.ModelAdmin):
 
 class MatchAdmin(admin.ModelAdmin):
     list_filter = ('completed', 'division')
-    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag' )
+    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag', 'ftr' )
     list_select_related = ('division', 'home_team',)
 
     def get_ordering(self, request):

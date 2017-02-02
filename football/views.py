@@ -121,12 +121,13 @@ def match(request, match_id):
     home_entry = League_Entry.objects.get(table=league_table, team=m.home_team)
     away_entry = League_Entry.objects.get(table=league_table, team=m.away_team)
 
+    uo_value = None
     # calculate the expected value of the under/over market
     if odds is not None:
         under_value = odds.under * (m.under / 100)
         over_value = odds.over * (m.over / 100)
 
-        uo_value = (under_value, over_value)
+        uo_value = (over_value, under_value)
     
     return render(request, 'football/results.html', {
         'home_team'     : m.home_team,

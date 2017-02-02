@@ -70,7 +70,7 @@
         <th>X</th>
         <th>2</th>
     <tr>
-        <td>Match Probabilities:</td>
+        <td>Probability:</td>
         <td>{{ home_win_probability }}%</td>
         <td>{{ draw_probability }}%</td>
         <td>{{ away_win_probability }}%</td>
@@ -93,17 +93,22 @@
     <thead>
         <tr>
             <th></th>
-            <th>Under 2.5</th>
             <th>Over 2.5</th>
+            <th>Under 2.5</th>
         </tr>
     </thead>
     <tr>
-        <td>Probability</td>
-        <td>{{ under|floatformat:"1" }}%</td>
+        <td>Probability:</td>
         <td>{{ over|floatformat:"1" }}%</td>
+        <td>{{ under|floatformat:"1" }}%</td>
     </tr>
     <tr>
-        <td>Expected Value</td>
+        <td>Odds:</td>
+        <td>{{ odds.over }}</td>
+        <td>{{ odds.under }}</td>
+    </tr>
+    <tr>
+        <td>Expected Value:</td>
         {% for v in uo_value %}
             <td>{{ v|floatformat:"2" }}</td>
         {% endfor %}

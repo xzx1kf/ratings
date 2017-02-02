@@ -32,7 +32,7 @@ class Team(models.Model):
     record = models.CharField(max_length=10, default="")
 
     def __str__(self):
-        return "{}, {}".format(self.name, self.division)
+        return "{}".format(self.name)
 
 class Match(models.Model):
     division = models.ForeignKey(Division)
