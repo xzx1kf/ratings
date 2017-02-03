@@ -1,35 +1,39 @@
-{% load static %}
+{% extends "football/base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'football/style.css' %}" />
+{% block title %}Football Analysis - Fixtures - Match{% endblock %}
 
-<table>
-    <tr>
-        <td><h4>{{ home_team.name }}</h4></td>
-        <td><h4>vs</h4></td>
-        <td><h4>{{ away_team.name }}</h4></td>
-    <tr>
-        <td class="last-10-games">
-            <ol>
-            {% for r in home_entry.record %}
-                <li class={{r}}>
-                    <span>{{ r }}</span>
-                </li>
-            {% endfor %}
-            </ol>
-        </td>
-        <td></td>
-        <td class="last-10-games">
-            <ol>
-            {% for r in away_entry.record %}
-                <li class={{r}}>
-                    <span>{{ r }}</span>
-                </li>
-            {% endfor %}
-            </ol>
-        </td>
-    </tr>
-</table>
+{% block content %}
 
+<section>
+    <table>
+        <tr>
+            <td><h4>{{ home_team.name }}</h4></td>
+            <td><h4>vs</h4></td>
+            <td><h4>{{ away_team.name }}</h4></td>
+        <tr>
+            <td class="last-10-games">
+                <ol>
+                {% for r in home_entry.record %}
+                    <li class={{r}}>
+                        <span>{{ r }}</span>
+                    </li>
+                {% endfor %}
+                </ol>
+            </td>
+            <td></td>
+            <td class="last-10-games">
+                <ol>
+                {% for r in away_entry.record %}
+                    <li class={{r}}>
+                        <span>{{ r }}</span>
+                    </li>
+                {% endfor %}
+                </ol>
+            </td>
+        </tr>
+    </table>
+</section>
+<section>
 <table>
     <tr>
         <th>Goals</th>
@@ -53,7 +57,7 @@
         {% endfor %}
     </tr>
 </table>
-
+</section>
 <table>
     <tr>
         <td>Predicted Score:</td>
@@ -192,3 +196,5 @@
 <div>
     {% include "football/mini_league_table.html" %}
 </div>
+
+{% endblock %}

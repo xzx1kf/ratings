@@ -39,16 +39,16 @@ class Match(models.Model):
     date = models.DateTimeField('match date')
     #home_team = models.ForeignKey(Team, related_name='home_team')
     home_team = ChainedForeignKey(
-            Team, 
-            chained_field="division", 
-            chained_model_field="division", 
-            show_all=False, 
+            Team,
+            chained_field="division",
+            chained_model_field="division",
+            show_all=False,
             related_name='home_team')
     away_team = ChainedForeignKey(
-            Team, 
-            chained_field="division", 
-            chained_model_field="division", 
-            show_all=False, 
+            Team,
+            chained_field="division",
+            chained_model_field="division",
+            show_all=False,
             related_name='away_team')
     #away_team = models.ForeignKey(Team, related_name='away_team')
     fthg = models.IntegerField(blank=True, null=True)
@@ -81,24 +81,24 @@ class Match(models.Model):
                 home_team.won += 1
                 away_team.lost += 1
 
-                self.home_team.record = "W" + self.home_team.record[0:9] 
-                self.away_team.record = "L" + self.away_team.record[0:9]
+                home_team.record = "W" + home_team.record[0:9]
+                away_team.record = "L" + away_team.record[0:9]
             elif self.ftag > self.fthg:
                 self.ftr = 'A'
                 away_team.points += 3
                 home_team.lost += 1
                 away_team.won += 1
 
-                self.home_team.record = "L" + self.home_team.record[0:9] 
-                self.away_team.record = "W" + self.away_team.record[0:9]
+                home_team.record = "L" + home_team.record[0:9]
+                away_team.record = "W" + away_team.record[0:9]
             else:
                 self.ftr = 'D'
                 home_team.points += 1
                 away_team.points += 1
                 home_team.drawn += 1
                 away_team.drawn += 1
-                self.home_team.record = "D" + self.home_team.record[0:9] 
-                self.away_team.record = "D" + self.away_team.record[0:9]
+                home_team.record = "D" + home_team.record[0:9]
+                away_team.record = "D" + away_team.record[0:9]
 
             home_team.played += 1
             home_team.goals_for += self.fthg
@@ -109,11 +109,9 @@ class Match(models.Model):
             away_team.goals_for += self.ftag
             away_team.goals_against += self.fthg
             away_team.goal_diff = away_team.goals_for - away_team.goals_against
-            
+
             away_team.save()
             home_team.save()
-            self.home_team.save()
-            self.away_team.save()
 
             super(Match, self).save(*args, **kwargs)
             return
@@ -154,7 +152,7 @@ class Match(models.Model):
                         print("Over:  {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
 
             self.home_win = round(self.home_win, 1)
-            
+
             # draw %
             for i in range(0,6):
                 home = home_team_probs[i]
@@ -189,13 +187,13 @@ class Match(models.Model):
             self.under = under
             self.over = over
             print("Under: {} Over: {}".format(under, over))
-            
+
             super(Match, self).save(*args, **kwargs)
 
     def __str__(self):
         return "%s - %s vs %s" % (
-                self.date.strftime('%d, %b %Y'), 
-                self.home_team, 
+                self.date.strftime('%d, %b %Y'),
+                self.home_team,
                 self.away_team)
 
     class Meta:
@@ -205,19 +203,19 @@ class Match(models.Model):
 
 class Odds(models.Model):
     match = models.ForeignKey(
-        Match, 
+        Match,
         #limit_choices_to={'completed': False},
     )
     home = models.FloatField(default=0)
     draw = models.FloatField(default=0)
     away = models.FloatField(default=0)
-    under = models.FloatField(default=0)
     over = models.FloatField(default=0)
+    under = models.FloatField(default=0)
 
     def __str__(self):
         return "%s - %s vs %s (%d,%d,%d)" % (
-                self.match.date.strftime('%d, %b %Y'), 
-                self.match.home_team, 
+                self.match.date.strftime('%d, %b %Y'),
+                self.match.home_team,
                 self.match.away_team,
                 self.home,
                 self.draw,
