@@ -8,6 +8,7 @@ from smart_selects.db_fields import GroupedForeignKey, ChainedForeignKey
 # Create your models here.
 class Division(models.Model):
     name = models.CharField(max_length=2, unique=True)
+    betfair_name = models.CharField(max_length=200, default="")
     total_games = models.IntegerField(default=1)
     attack_strength = models.FloatField(default=1)
     defense_strength = models.FloatField(default=1)
@@ -20,6 +21,7 @@ class Division(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=200, unique=True)
+    betfair_name = models.CharField(max_length=200, default="")
     division = models.ForeignKey(Division)
     fthg = models.IntegerField(default=0)
     ftag = models.IntegerField(default=0)

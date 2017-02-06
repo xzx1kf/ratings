@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from football.models import Team, Division
+from football.models import Team, Match, Odds, Division
 
 import datetime
 import json
@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
     def getEventTypes(self):
         event_type_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listEventTypes", "params": {"filter":{ }}, "id": 1}'
-        print ('Calling listEventTypes to get event Type ID')
+        #print ('Calling listEventTypes to get event Type ID')
         eventTypesResponse = self.callAping(event_type_req)
         eventTypeLoads = json.loads(eventTypesResponse)
         """
@@ -97,6 +97,7 @@ class Command(BaseCommand):
 
 
     def getMarketID(self, eventID):
+        #market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketCatalogue", "params": {"filter":{ "eventIds" : ['+eventID+'], "marketTypeCodes" : ["MATCH_ODDS", "OVER_UNDER_25"] }, "marketProjection" : ["RUNNER_DESCRIPTION"], "maxResults":"10" }, "id": 1}'
         market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketCatalogue", "params": {"filter":{ "eventIds" : ['+eventID+'], "marketTypeCodes" : ["MATCH_ODDS"] }, "marketProjection" : ["RUNNER_DESCRIPTION"], "maxResults":"10" }, "id": 1}'
         marketResponse = self.callAping(market_req)
         marketLoads = json.loads(marketResponse)
@@ -105,7 +106,7 @@ class Command(BaseCommand):
         """
         try:
             marketResults = marketLoads['result']
-            return marketResults[0]['marketId'], marketResults[0]['runners']
+            return marketResults[0]['marketId'], marketResults[0]['runners']#, marketResults
         except:
             print ('Exception from API-NG' + str(marketLoads['error']))
             exit()
@@ -114,7 +115,7 @@ class Command(BaseCommand):
         """
         MarketIDs
         """
-        market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketBook", "params": {"marketIds" : ['+str(marketID)+'] }, "id": 1}'
+        market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketBook", "params": {"marketIds" : ['+str(marketID)+'],"priceProjection":{"priceData":["EX_BEST_OFFERS"]} }, "id": 1}'
         marketResponse = self.callAping(market_req)
         marketLoads = json.loads(marketResponse)
         """
@@ -129,35 +130,57 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        matches = Match.objects.filter(completed=False)
+
         eventTypesResult = self.getEventTypes()
         soccerEventTypeID = self.getEventTypeIDForEventTypeName(eventTypesResult, 'Soccer')
 
         #print ('EventType Id for Soccer is :' + str(soccerEventTypeID))
 
         soccerCompetitions = self.getCompetitionsForEventTypeID(soccerEventTypeID)
-        premierLeagueID = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'English Premier League')
+        #premierLeagueID = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'English Premier League')
+        #champioinshipID = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'The Championship')
+        competition_ids = {}
+        competition_ids['English Premier League'] = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'English Premier League')
+        competition_ids['The Championship'] = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'The Championship')
 
         #print ('Competition Id for English Premier League is :' + str(premierLeagueID))
 
-        eventID = self.getEventID(premierLeagueID, "Arsenal", "Hull")
+        for match in matches:
+            competition_name = match.division.betfair_name
+            competition_id = competition_ids[competition_name]
 
-        #print ('Event ID :' + str(eventID))
+            eventID = self.getEventID(competition_id, match.home_team.betfair_name, match.away_team.betfair_name)
 
-        marketID, runners = self.getMarketID(eventID)
+            #print ('Event ID :' + str(eventID))
 
-        #print ('Market ID : ' + str(marketID))
+            marketID, runners = self.getMarketID(eventID)
+            #marketID, runners, over_under_runners = self.getMarketID(eventID)
 
-        prices = {}
-        for selection in runners:
-            prices[selection['selectionId']] = {}
-            prices[selection['selectionId']] = { 'name' : selection['runnerName'] }
+            #print ('Market ID : ' + str(marketID))
+            #print ('Market ID : ' + str(over_under_runners))
+
+            prices = {}
+            for selection in runners:
+                prices[selection['selectionId']] = {}
+                prices[selection['selectionId']] = { 'name' : selection['runnerName'] }
 
 
-        marketBook = self.getMarketBook(marketID)
+            marketBook = self.getMarketBook(marketID)
 
-        for selection in marketBook[0]['runners']:
-            prices[selection['selectionId']].update( { 'odds' : selection['lastPriceTraded'] })
-        #print ('Market Book: ' + str(marketBook))
+            for selection in marketBook[0]['runners']:
+                #prices[selection['selectionId']].update( { 'odds' : selection['lastPriceTraded'] })
+                prices[selection['selectionId']].update( { 'odds' : selection['ex']['availableToBack'][0]['price']})
+            #print ('Market Book: ' + str(marketBook))
 
-        for k,v in prices.items():
-            print("{}: {}".format(v['name'], v['odds']))
+            odds, created = Odds.objects.get_or_create(match=match)
+
+            for k, v in prices.items():
+                #print("{}: {}".format(v['name'], v['odds']))
+                if v['name'] == match.home_team.betfair_name:
+                    odds.home = v['odds']
+                elif v['name'] == match.away_team.betfair_name:
+                    odds.away = v['odds']
+                else:
+                    odds.draw = v['odds']
+            odds.save()
