@@ -4,14 +4,6 @@
 # sort out the required pages and their names. analysis should probably be
   something like football/match/06/detail
 
-# retreive odds automatically. 
-
-# add last 5 results to team title, as in WWLWD.
-
 # Tidy up the web page for a match.
 
 # Add current league position
-
-# Add a league table
-
-# Add over/under 2.5 goals table
