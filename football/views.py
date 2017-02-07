@@ -91,20 +91,6 @@ def match(request, match_id):
             ).order_by('-date').exclude(completed=False)[:5]
     last_5_matches_ha = zip(ht_last_5_matches, at_last_5_matches)
 
-    # get the odds for this match
-    try:
-        odds = Odds.objects.get(match=m)
-    except ObjectDoesNotExist:
-        odds = None
-
-    value = None
-    # calculate the expected value
-    if odds is not None:
-        home_value = odds.home * (home_win_probability / 100)
-        draw_value = odds.draw * (draw_probability / 100)
-        away_value = odds.away * (away_win_probability / 100)
-
-        value = (home_value, draw_value, away_value)
 
     # Get the league table associated with this match
     league_table = League.objects.get(
@@ -116,13 +102,22 @@ def match(request, match_id):
     away_entry = League_Entry.objects.get(
             table=league_table, team=m.away_team)
 
-    uo_value = None
-    # calculate the expected value of the under/over market
-    if odds is not None:
-        under_value = odds.under * (m.under / 100)
-        over_value = odds.over * (m.over / 100)
+    # Get the league positions for the home/away teams.
+    home_team_position, away_team_position = get_league_positions(
+            m, league_entry)
 
-        uo_value = (over_value, under_value)
+    # calculate the expected value for the given odds.
+    try:
+        odds = Odds.objects.get(match=m)
+    except ObjectDoesNotExist:
+        odds = None
+
+    value, uo_value = get_expected_value(
+            m,
+            odds,
+            home_win_probability,
+            draw_probability,
+            away_win_probability)
 
     return render(request, 'football/match.html', {
         'home_team'     : m.home_team,
@@ -144,6 +139,8 @@ def match(request, match_id):
         'under'                     : m.under,
         'over'                      : m.over,
         'uo_value'                  : uo_value,
+        'home_team_position': home_team_position,
+        'away_team_position': away_team_position,
         })
 
 def tables(request):
@@ -167,3 +164,30 @@ def tables(request):
         'league_table'  : league_table,
         'form'      : form,
         })
+
+def get_expected_value(match, odds, home, draw, away):
+    """Return the expected value for the given odds."""
+    value = None
+    uo_value = None
+    if odds is not None:
+        home_value = odds.home * (home / 100)
+        draw_value = odds.draw * (draw / 100)
+        away_value = odds.away * (away / 100)
+        match_value = (home_value, draw_value, away_value)
+        under_value = odds.under * (match.under / 100)
+        over_value = odds.over * (match.over / 100)
+        over_under_value = (over_value, under_value)
+        return match_value, over_under_value
+
+def get_league_positions(match, table):
+    """Returns the league positions for the home and away teams."""
+    counter = 0
+    home_team_position = 0
+    away_team_position = 0
+    for team in table:
+        counter += 1
+        if team.team == match.home_team:
+            home_team_position = counter
+        if team.team == match.away_team:
+            away_team_position = counter
+    return home_team_position, away_team_position

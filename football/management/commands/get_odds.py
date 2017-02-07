@@ -1,12 +1,14 @@
-from django.core.management.base import BaseCommand, CommandError
-from football.models import Team, Match, Odds, Division
-
 import datetime
 import json
 import urllib
 import urllib.request
 import urllib.error
 import sys
+
+from django.core.management.base import BaseCommand, CommandError
+
+from football.models import Team, Match, Odds, Division
+
 
 class Command(BaseCommand):
     help = 'Get the latest odds from BetFair'
@@ -16,7 +18,6 @@ class Command(BaseCommand):
             'X-Application' : 'SMDsyAVkt1mi6WVg',
             'X-Authentication' : session_token,
             'content-type' : 'application/json' }
-
 
     def call_api_ng(self, jsonrpc_req):
         try:
@@ -34,7 +35,6 @@ class Command(BaseCommand):
                 'Oops not a valid operation from the service '\
                 + str(self.url))
 
-
     def get_event_types(self):
         event_type_req = '{"jsonrpc": "2.0",'\
                 '"method": "SportsAPING/v1.0/listEventTypes",'\
@@ -49,7 +49,6 @@ class Command(BaseCommand):
                 'Exception from API-NG'\
                 + str(event_types_loads['error']))
 
-
     def get_event_type_id(self, event_types, requestedEventTypeName):
         if(event_types is not None):
             for event in event_types:
@@ -58,7 +57,6 @@ class Command(BaseCommand):
                     return event['eventType']['id']
         else:
             raise CommandError('Oops there is an issue with the input')
-
 
     def get_competition_id(
             self, competition_results, competition_name):
@@ -69,7 +67,6 @@ class Command(BaseCommand):
                     return competition['competition']['id']
         else:
             raise CommandError('Oops there is an issue with the input')
-
 
     def get_competitions(self, eventTypeID):
         competitions_req = '{"jsonrpc": "2.0", '\
@@ -87,7 +84,6 @@ class Command(BaseCommand):
                 'Exception from API-NG'\
                 + str(competition_loads['error']))
 
-
     def get_event_id(self, competition_id, home_team, away_team):
         events_req = '{"jsonrpc": "2.0",'\
                 '"method": "SportsAPING/v1.0/listEvents",'\
@@ -104,7 +100,6 @@ class Command(BaseCommand):
             raise CommandError(
                 'Exception from API-NG' + str(event_loads['error']))
 
-
     def get_market_id(self, event_id):
         market_req = '{"jsonrpc": "2.0", '\
                 '"method": "SportsAPING/v1.0/listMarketCatalogue",'\
@@ -120,7 +115,6 @@ class Command(BaseCommand):
         except:
             raise CommandError(
                 'Exception from API-NG' + str(market_loads['error']))
-
 
     def get_market_book(self, market_id):
         market_req = '{"jsonrpc": "2.0",'\
@@ -140,18 +134,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Create odds for matches that haven't been played yet."""
-
         # Get all matches that haven't been played yet.
         matches = Match.objects.filter(completed=False)
-
         # Get a list of all event types in betfair.
         event_types = self.get_event_types()
-
         # Search for the 'soccer' event type id.
         soccer_event_type_id = self.get_event_type_id(
                 event_types,
                 'Soccer')
-
         # Get all soccer competitions.
         soccer_competitions = self.get_competitions(soccer_event_type_id)
 
