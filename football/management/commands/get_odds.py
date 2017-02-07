@@ -10,8 +10,7 @@ import sys
 
 class Command(BaseCommand):
     help = 'Get the latest odds from BetFair'
-
-    session_token = 'CdgCGEa6AW7RySWEFhDhOFFPVUfDYOEso0R2YOh7vBg='
+    session_token = 'DpNnsysIE7nXzupWa6iK8jM0ydCpbLTBEf9ZvCYWaWs='
     url = "https://api.betfair.com/exchange/betting/json-rpc/v1"
     headers = {
             'X-Application' : 'SMDsyAVkt1mi6WVg',
@@ -76,7 +75,7 @@ class Command(BaseCommand):
         competitions_req = '{"jsonrpc": "2.0", '\
                 '"method": "SportsAPING/v1.0/listCompetitions",'\
                 '"params": {"filter":{ '\
-                '"eventTypeIds" : ['+eventTypeID+'],'\
+                '"eventTypeIds" : ["'+str(eventTypeID)+'"],'\
                 '"marketCountries":["GB"]  }}, "id": 1}'
         competitions_response = self.call_api_ng(competitions_req)
         competition_loads = json.loads(competitions_response)
@@ -93,7 +92,7 @@ class Command(BaseCommand):
         events_req = '{"jsonrpc": "2.0",'\
                 '"method": "SportsAPING/v1.0/listEvents",'\
                 '"params": {"filter":'\
-                '{ "competitionIds" : ['+competition_id+'],'\
+                '{ "competitionIds" : ["'+str(competition_id)+'"],'\
                 '"textQuery" : "'+home_team+' '+away_team+'"  }},'\
                 '"id": 1}'
         events_response = self.call_api_ng(events_req)
@@ -109,7 +108,7 @@ class Command(BaseCommand):
     def get_market_id(self, event_id):
         market_req = '{"jsonrpc": "2.0", '\
                 '"method": "SportsAPING/v1.0/listMarketCatalogue",'\
-                '"params": {"filter":{ "eventIds" : ['+event_id+'],'\
+                '"params": {"filter":{ "eventIds" : ["'+str(event_id)+'"],'\
                 '"marketTypeCodes": ["MATCH_ODDS", "OVER_UNDER_25"] },'\
                 '"marketProjection" : ["RUNNER_DESCRIPTION"],'\
                 '"maxResults":"10" }, "id": 1}'
@@ -126,9 +125,9 @@ class Command(BaseCommand):
     def get_market_book(self, market_id):
         market_req = '{"jsonrpc": "2.0",'\
                 '"method": "SportsAPING/v1.0/listMarketBook",'\
-                '"params": {"marketIds" : ['+market_id+'],'\
+                '"params": {"marketIds" : ["'+str(market_id)+'"],'\
                 '"priceProjection":{"priceData":["EX_BEST_OFFERS"]}},'\
-                ' "id": 1}'
+                '"id": 1}'
         market_response = self.call_api_ng(market_req)
         market_loads = json.loads(market_response)
         try:
@@ -220,10 +219,17 @@ class Command(BaseCommand):
             over_25_odds = 0
             over_under_market_book = self.get_market_book(
                     over_under_market['marketId'])
-            for runner in over_under_market_book[0]['runners']:
-                over_under_prices[runner['selectionId']].update({
-                    'odds' : runner['ex']['availableToBack'][0]['price']
-                })
+
+            try:
+                for runner in over_under_market_book[0]['runners']:
+                    over_under_prices[runner['selectionId']].update({
+                        'odds' : runner['ex']['availableToBack'][0]['price']
+                    })
+            except:
+                self.stdout.write(self.style.ERROR(
+                    'Failed to create odds for match "%s"' % (match))
+                )
+                continue
 
             odds, created = Odds.objects.get_or_create(match=match)
 

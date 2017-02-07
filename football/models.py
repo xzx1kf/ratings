@@ -74,8 +74,10 @@ class Match(models.Model):
         if self.completed == True:
             # Add this match to the league table standings
             league = League.objects.get(active=True, division=self.division)
-            home_team = League_Entry.objects.get(table=league, team=self.home_team)
-            away_team = League_Entry.objects.get(table=league, team=self.away_team)
+            home_team = League_Entry.objects.get(
+                    table=league, team=self.home_team)
+            away_team = League_Entry.objects.get(
+                    table=league, team=self.away_team)
 
             if self.fthg > self.ftag:
                 self.ftr = 'H'
@@ -119,16 +121,22 @@ class Match(models.Model):
             return
         else:
             # calculate expected goals
-            home_goals = self.home_team.home_attack_strength * self.away_team.away_defense_strength * self.division.attack_strength
-            away_goals = self.away_team.away_attack_strength * self.home_team.home_defense_strength * self.division.defense_strength
+            home_goals = (self.home_team.home_attack_strength
+                * self.away_team.away_defense_strength
+                * self.division.attack_strength)
+            away_goals = (self.away_team.away_attack_strength
+                * self.home_team.home_defense_strength
+                * self.division.defense_strength)
 
             home_team_probs = []
             away_team_probs = []
 
             # calculate match probabilities
             for i in range(0, 6):
-                home_team_probs.append(round((poisson.pmf(i, home_goals) * 100), 1))
-                away_team_probs.append(round((poisson.pmf(i, away_goals) * 100), 1))
+                home_team_probs.append(
+                        round((poisson.pmf(i, home_goals) * 100), 1))
+                away_team_probs.append(
+                        round((poisson.pmf(i, away_goals) * 100), 1))
 
             self.pfthg = home_goals
             self.pftag = away_goals
@@ -148,10 +156,12 @@ class Match(models.Model):
 
                     if j <= 2 and i <= 0:
                         under += (home / 10) * (away / 10)
-                        print("Under: {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                        print("Under: {}-{} = {}"
+                                .format(i,j,((home / 10) * (away / 10))))
                     else:
                         over += (home / 10) * (away / 10)
-                        print("Over:  {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                        print("Over:  {}-{} = {}"
+                                .format(i,j,((home / 10) * (away / 10))))
 
             self.home_win = round(self.home_win, 1)
 
@@ -163,10 +173,12 @@ class Match(models.Model):
 
                 if i < 2:
                     under += (home / 10) * (away / 10)
-                    print("Under: {}-{} = {}".format(i,i,((home / 10) * (away / 10))))
+                    print("Under: {}-{} = {}"
+                            .format(i,i,((home / 10) * (away / 10))))
                 else:
                     over += (home / 10) * (away / 10)
-                    print("Over:  {}-{} = {}".format(i,i,((home / 10) * (away / 10))))
+                    print("Over:  {}-{} = {}"
+                            .format(i,i,((home / 10) * (away / 10))))
 
             self.draw = round(self.draw, 1)
 
@@ -179,10 +191,12 @@ class Match(models.Model):
 
                     if j <= 2 and i <= 0:
                         under += (home / 10) * (away / 10)
-                        print("Under: {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                        print("Under: {}-{} = {}"
+                                .format(i,j,((home / 10) * (away / 10))))
                     else:
                         over += (home / 10) * (away / 10)
-                        print("Over:  {}-{} = {}".format(i,j,((home / 10) * (away / 10))))
+                        print("Over:  {}-{} = {}"
+                                .format(i,j,((home / 10) * (away / 10))))
 
             self.away_win = round(self.away_win, 1)
 

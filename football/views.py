@@ -17,7 +17,8 @@ def fixtures(request):
     if request.method == 'POST':
         form = LeagueForm(request.POST)
         if form.is_valid():
-            division = get_object_or_404(Division, pk=request.POST.get('division'))
+            division = get_object_or_404(
+                    Division, pk=request.POST.get('division'))
             fixtures = Match.objects.filter(
                     completed=False, division=division).order_by(
                     'date', 'home_team__name')
@@ -25,10 +26,10 @@ def fixtures(request):
         division = Division.objects.first()
         form = LeagueForm(initial = { 'division': division } )
         fixtures = Match.objects.filter(
-                completed=False, 
+                completed=False,
                 division=division,
             ).order_by(
-                'date', 
+                'date',
                 'home_team__name'
             )
     return render(request, 'football/fixtures.html', {
@@ -44,8 +45,10 @@ def match(request, match_id):
     away_team_probabilities = []
 
     for i in range(0,6):
-        home_team_probabilities.append(round((poisson.pmf(i, m.pfthg) * 100), 1))
-        away_team_probabilities.append(round((poisson.pmf(i, m.pftag) * 100), 1))
+        home_team_probabilities.append(
+                round((poisson.pmf(i, m.pfthg) * 100), 1))
+        away_team_probabilities.append(
+                round((poisson.pmf(i, m.pftag) * 100), 1))
 
     # calculate match probabilities
     # home win %
@@ -72,16 +75,18 @@ def match(request, match_id):
             away_win_probability += (home / 10) * (away / 10)
 
     # home team last 5 home matches
-    home_team_last_5_matches = Match.objects.filter(home_team=m.home_team).exclude(completed=False).order_by('-date')[:5]
-    away_team_last_5_matches = Match.objects.filter(away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
+    home_team_last_5_matches = Match.objects.filter(
+            home_team=m.home_team).exclude(completed=False).order_by('-date')[:5]
+    away_team_last_5_matches = Match.objects.filter(
+            away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
     last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
 
     ht_last_5_matches = Match.objects.filter(
-            Q(home_team=m.home_team) | 
+            Q(home_team=m.home_team) |
             Q(away_team=m.home_team)
             ).order_by('-date').exclude(completed=False)[:5]
     at_last_5_matches = Match.objects.filter(
-            Q(home_team=m.away_team) | 
+            Q(home_team=m.away_team) |
             Q(away_team=m.away_team)
             ).order_by('-date').exclude(completed=False)[:5]
     last_5_matches_ha = zip(ht_last_5_matches, at_last_5_matches)
@@ -102,10 +107,14 @@ def match(request, match_id):
         value = (home_value, draw_value, away_value)
 
     # Get the league table associated with this match
-    league_table = League.objects.get(division=m.home_team.division, active=True)
-    league_entry = League_Entry.objects.filter(table=league_table).order_by('-points', '-goal_diff')
-    home_entry = League_Entry.objects.get(table=league_table, team=m.home_team)
-    away_entry = League_Entry.objects.get(table=league_table, team=m.away_team)
+    league_table = League.objects.get(
+            division=m.home_team.division, active=True)
+    league_entry = League_Entry.objects.filter(
+            table=league_table).order_by('-points', '-goal_diff')
+    home_entry = League_Entry.objects.get(
+            table=league_table, team=m.home_team)
+    away_entry = League_Entry.objects.get(
+            table=league_table, team=m.away_team)
 
     uo_value = None
     # calculate the expected value of the under/over market
@@ -114,7 +123,7 @@ def match(request, match_id):
         over_value = odds.over * (m.over / 100)
 
         uo_value = (over_value, under_value)
-    
+
     return render(request, 'football/match.html', {
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
@@ -128,7 +137,7 @@ def match(request, match_id):
         'last_5_matches'            : last_5_matches,
         'odds'                      : odds,
         'value'                     : value,
-        'last_5_matches_ha'         : last_5_matches_ha, 
+        'last_5_matches_ha'         : last_5_matches_ha,
         'league_table'              : league_entry,
         'home_entry'                : home_entry,
         'away_entry'                : away_entry,
@@ -142,7 +151,8 @@ def tables(request):
     if request.method == 'POST':
         form = LeagueForm(request.POST)
         if form.is_valid():
-            division = get_object_or_404(Division, pk=request.POST.get('division'))
+            division = get_object_or_404(
+                    Division, pk=request.POST.get('division'))
             league = League.objects.get(division=division, active=True)
             league_table = League_Entry.objects.filter(table=league).order_by(
                 '-points', '-goal_diff')
