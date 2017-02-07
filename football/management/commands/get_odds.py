@@ -9,178 +9,241 @@ import urllib.error
 import sys
 
 class Command(BaseCommand):
-    session_token = 'HqQvWUj4lbYtwWCfVCYSgq5CVI0Vw3oj1Dg+rxf1OlI='
     help = 'Get the latest odds from BetFair'
+
+    session_token = 'CdgCGEa6AW7RySWEFhDhOFFPVUfDYOEso0R2YOh7vBg='
     url = "https://api.betfair.com/exchange/betting/json-rpc/v1"
-    headers = { 'X-Application' : 'SMDsyAVkt1mi6WVg', 'X-Authentication' : session_token, 'content-type' : 'application/json' }
+    headers = {
+            'X-Application' : 'SMDsyAVkt1mi6WVg',
+            'X-Authentication' : session_token,
+            'content-type' : 'application/json' }
 
-    def callAping(self, jsonrpc_req):
+
+    def call_api_ng(self, jsonrpc_req):
         try:
-            req = urllib.request.Request(self.url, jsonrpc_req.encode('utf-8'), self.headers)
+            req = urllib.request.Request(
+                    self.url, jsonrpc_req.encode('utf-8'), self.headers)
             response = urllib.request.urlopen(req)
-            jsonResponse = response.read()
-            return jsonResponse.decode('utf-8')
+            json_response = response.read()
+            return json_response.decode('utf-8')
         except urllib.error.URLError as e:
-            print (e.reason)
-            print ('Oops no service available at ' + str(self.url))
-            exit()
+            self.stdout.write(self.style.ERROR(e.reason))
+            raise CommandError(
+                'Oops no service available at ' + str(self.url))
         except urllib.error.HTTPError:
-            print ('Oops not a valid operation from the service ' + str(self.url))
-            exit()
+            raise CommandError(
+                'Oops not a valid operation from the service '\
+                + str(self.url))
 
 
-    def getEventTypes(self):
-        event_type_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listEventTypes", "params": {"filter":{ }}, "id": 1}'
-        #print ('Calling listEventTypes to get event Type ID')
-        eventTypesResponse = self.callAping(event_type_req)
-        eventTypeLoads = json.loads(eventTypesResponse)
-        """
-        print(eventTypeLoads)
-        """
+    def get_event_types(self):
+        event_type_req = '{"jsonrpc": "2.0",'\
+                '"method": "SportsAPING/v1.0/listEventTypes",'\
+                '"params": {"filter":{ }}, "id": 1}'
+        event_types_response = self.call_api_ng(event_type_req)
+        event_types_loads = json.loads(event_types_response)
         try:
-            eventTypeResults = eventTypeLoads['result']
-            return eventTypeResults
+            event_type_results = event_types_loads['result']
+            return event_type_results
         except:
-            print ('Exception from API-NG' + str(eventTypeLoads['error']))
-            exit()
+            raise CommandError(
+                'Exception from API-NG'\
+                + str(event_types_loads['error']))
 
 
-    def getEventTypeIDForEventTypeName(self, eventTypesResult, requestedEventTypeName):
-        if(eventTypesResult is not None):
-            for event in eventTypesResult:
+    def get_event_type_id(self, event_types, requestedEventTypeName):
+        if(event_types is not None):
+            for event in event_types:
                 eventTypeName = event['eventType']['name']
                 if(eventTypeName == requestedEventTypeName):
                     return event['eventType']['id']
         else:
-            print('Oops there is an issue with the input')
-            exit()
+            raise CommandError('Oops there is an issue with the input')
 
-    def getCompetitionIDForCompetitionName(self, competitionResults, requestedCompetitionName):
-        if (competitionResults is not None):
-            for competition in competitionResults:
-                competitionName = competition['competition']['name']
-                if (competitionName == requestedCompetitionName):
+
+    def get_competition_id(
+            self, competition_results, competition_name):
+        if (competition_results is not None):
+            for competition in competition_results:
+                name = competition['competition']['name']
+                if (name == competition_name):
                     return competition['competition']['id']
         else:
-            print ('Oops there is an issue with the input')
-            exit()
+            raise CommandError('Oops there is an issue with the input')
 
 
-    def getCompetitionsForEventTypeID(self, eventTypeID):
-        competitions_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listCompetitions", "params": {"filter":{ "eventTypeIds" : ['+eventTypeID+'], "marketCountries":["GB"]  }}, "id": 1}'
-        competitionsResponse = self.callAping(competitions_req)
-        competitionLoads = json.loads(competitionsResponse)
-        """
-        print(competitionLoads)
-        """
+    def get_competitions(self, eventTypeID):
+        competitions_req = '{"jsonrpc": "2.0", '\
+                '"method": "SportsAPING/v1.0/listCompetitions",'\
+                '"params": {"filter":{ '\
+                '"eventTypeIds" : ['+eventTypeID+'],'\
+                '"marketCountries":["GB"]  }}, "id": 1}'
+        competitions_response = self.call_api_ng(competitions_req)
+        competition_loads = json.loads(competitions_response)
         try:
-            competitionResults = competitionLoads['result']
-            return competitionResults
+            competition_results = competition_loads['result']
+            return competition_results
         except:
-            print ('Exception from API-NG' + str(competitionLoads['error']))
-            exit()
+            raise CommandError(
+                'Exception from API-NG'\
+                + str(competition_loads['error']))
 
 
-    def getEventID(self, competitionID, home_team, away_team):
-        events_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listEvents", "params": {"filter":{ "competitionIds" : ['+competitionID+'], "textQuery" : "'+home_team+' '+away_team+'"  }}, "id": 1}'
-        eventsResponse = self.callAping(events_req)
-        eventLoads = json.loads(eventsResponse)
-        """
-        print(eventLoads)
-        """
+    def get_event_id(self, competition_id, home_team, away_team):
+        events_req = '{"jsonrpc": "2.0",'\
+                '"method": "SportsAPING/v1.0/listEvents",'\
+                '"params": {"filter":'\
+                '{ "competitionIds" : ['+competition_id+'],'\
+                '"textQuery" : "'+home_team+' '+away_team+'"  }},'\
+                '"id": 1}'
+        events_response = self.call_api_ng(events_req)
+        event_loads = json.loads(events_response)
         try:
-            eventResults = eventLoads['result']
-            return eventResults[0]['event']['id']
+            event_results = event_loads['result']
+            return event_results[0]['event']['id']
         except:
-            print ('Exception from API-NG' + str(eventLoads['error']))
-            exit()
+            raise CommandError(
+                'Exception from API-NG' + str(event_loads['error']))
 
 
-    def getMarketID(self, eventID):
-        #market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketCatalogue", "params": {"filter":{ "eventIds" : ['+eventID+'], "marketTypeCodes" : ["MATCH_ODDS", "OVER_UNDER_25"] }, "marketProjection" : ["RUNNER_DESCRIPTION"], "maxResults":"10" }, "id": 1}'
-        market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketCatalogue", "params": {"filter":{ "eventIds" : ['+eventID+'], "marketTypeCodes" : ["MATCH_ODDS"] }, "marketProjection" : ["RUNNER_DESCRIPTION"], "maxResults":"10" }, "id": 1}'
-        marketResponse = self.callAping(market_req)
-        marketLoads = json.loads(marketResponse)
-        """
-        print(eventLoads)
-        """
+    def get_market_id(self, event_id):
+        market_req = '{"jsonrpc": "2.0", '\
+                '"method": "SportsAPING/v1.0/listMarketCatalogue",'\
+                '"params": {"filter":{ "eventIds" : ['+event_id+'],'\
+                '"marketTypeCodes": ["MATCH_ODDS", "OVER_UNDER_25"] },'\
+                '"marketProjection" : ["RUNNER_DESCRIPTION"],'\
+                '"maxResults":"10" }, "id": 1}'
+        market_response = self.call_api_ng(market_req)
+        market_loads = json.loads(market_response)
         try:
-            marketResults = marketLoads['result']
-            return marketResults[0]['marketId'], marketResults[0]['runners']#, marketResults
+            market_results = market_loads['result']
+            return market_results[0]['marketId'], market_results
         except:
-            print ('Exception from API-NG' + str(marketLoads['error']))
-            exit()
+            raise CommandError(
+                'Exception from API-NG' + str(market_loads['error']))
 
-    def getMarketBook(self, marketID):
-        """
-        MarketIDs
-        """
-        market_req = '{"jsonrpc": "2.0", "method": "SportsAPING/v1.0/listMarketBook", "params": {"marketIds" : ['+str(marketID)+'],"priceProjection":{"priceData":["EX_BEST_OFFERS"]} }, "id": 1}'
-        marketResponse = self.callAping(market_req)
-        marketLoads = json.loads(marketResponse)
-        """
-        print(eventLoads)
-        """
+
+    def get_market_book(self, market_id):
+        market_req = '{"jsonrpc": "2.0",'\
+                '"method": "SportsAPING/v1.0/listMarketBook",'\
+                '"params": {"marketIds" : ['+market_id+'],'\
+                '"priceProjection":{"priceData":["EX_BEST_OFFERS"]}},'\
+                ' "id": 1}'
+        market_response = self.call_api_ng(market_req)
+        market_loads = json.loads(market_response)
         try:
-            marketResults = marketLoads['result']
-            return marketResults
+            market_results = market_loads['result']
+            return market_results
         except:
-            print ('Exception from API-NG' + str(marketLoads['error']))
-            exit()
+            raise CommandError(
+                    'Exception from API-NG'\
+                    + str(market_loads['error']))
 
     def handle(self, *args, **options):
+        """Create odds for matches that haven't been played yet."""
 
+        # Get all matches that haven't been played yet.
         matches = Match.objects.filter(completed=False)
 
-        eventTypesResult = self.getEventTypes()
-        soccerEventTypeID = self.getEventTypeIDForEventTypeName(eventTypesResult, 'Soccer')
+        # Get a list of all event types in betfair.
+        event_types = self.get_event_types()
 
-        #print ('EventType Id for Soccer is :' + str(soccerEventTypeID))
+        # Search for the 'soccer' event type id.
+        soccer_event_type_id = self.get_event_type_id(
+                event_types,
+                'Soccer')
 
-        soccerCompetitions = self.getCompetitionsForEventTypeID(soccerEventTypeID)
-        #premierLeagueID = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'English Premier League')
-        #champioinshipID = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'The Championship')
+        # Get all soccer competitions.
+        soccer_competitions = self.get_competitions(soccer_event_type_id)
+
+        # Find the competition ids for specific competitions.
         competition_ids = {}
-        competition_ids['English Premier League'] = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'English Premier League')
-        competition_ids['The Championship'] = self.getCompetitionIDForCompetitionName(soccerCompetitions, 'The Championship')
-
-        #print ('Competition Id for English Premier League is :' + str(premierLeagueID))
+        competition_ids['English Premier League'] = self.get_competition_id(
+                soccer_competitions, 'English Premier League')
+        competition_ids['The Championship'] = self.get_competition_id(
+                soccer_competitions, 'The Championship')
 
         for match in matches:
             competition_name = match.division.betfair_name
             competition_id = competition_ids[competition_name]
 
-            eventID = self.getEventID(competition_id, match.home_team.betfair_name, match.away_team.betfair_name)
+            # Get the betfair event id for the match using the
+            # home/away team names in the text search string.
+            event_id = self.get_event_id(
+                    competition_id,
+                    match.home_team.betfair_name,
+                    match.away_team.betfair_name)
 
-            #print ('Event ID :' + str(eventID))
+            market_id, markets = self.get_market_id(event_id)
 
-            marketID, runners = self.getMarketID(eventID)
-            #marketID, runners, over_under_runners = self.getMarketID(eventID)
+            # TODO: should these names be extracted from betfair?
+            over_under_market_name = 'Over/Under 2.5 Goals'
+            match_odds_market_name = 'Match Odds'
+            under_25_goals = 'Under 2.5 Goals'
+            over_25_goals = 'Over 2.5 Goals'
 
-            #print ('Market ID : ' + str(marketID))
-            #print ('Market ID : ' + str(over_under_runners))
+            if markets[0]['marketName'] == over_under_market_name:
+                over_under_market = markets[0]
+                match_odds_market = markets[1]
+            else:
+                over_under_market = markets[1]
+                match_odds_market = markets[0]
 
+            # Extract the match odds from the betfair market.
             prices = {}
-            for selection in runners:
-                prices[selection['selectionId']] = {}
-                prices[selection['selectionId']] = { 'name' : selection['runnerName'] }
+            for runner in match_odds_market['runners']:
+                prices[runner['selectionId']] = {}
+                prices[runner['selectionId']] = {
+                    'name' : runner['runnerName']}
 
+            match_odds_market_book = self.get_market_book(
+                    match_odds_market['marketId'])
 
-            marketBook = self.getMarketBook(marketID)
+            try:
+                for runner in match_odds_market_book[0]['runners']:
+                    prices[runner['selectionId']].update({
+                        'odds' : runner['ex']['availableToBack'][0]['price']
+                    })
+            except:
+                self.stdout.write(self.style.ERROR(
+                    'Failed to create odds for match "%s"' % (match))
+                )
+                continue
 
-            for selection in marketBook[0]['runners']:
-                #prices[selection['selectionId']].update( { 'odds' : selection['lastPriceTraded'] })
-                prices[selection['selectionId']].update( { 'odds' : selection['ex']['availableToBack'][0]['price']})
-            #print ('Market Book: ' + str(marketBook))
+            # Extract the over/under odds from the betfair market
+            over_under_prices = {}
+            for runner in over_under_market['runners']:
+                over_under_prices[runner['selectionId']] = {
+                        'name' : runner['runnerName']}
+
+            under_25_odds = 0
+            over_25_odds = 0
+            over_under_market_book = self.get_market_book(
+                    over_under_market['marketId'])
+            for runner in over_under_market_book[0]['runners']:
+                over_under_prices[runner['selectionId']].update({
+                    'odds' : runner['ex']['availableToBack'][0]['price']
+                })
 
             odds, created = Odds.objects.get_or_create(match=match)
 
             for k, v in prices.items():
-                #print("{}: {}".format(v['name'], v['odds']))
                 if v['name'] == match.home_team.betfair_name:
                     odds.home = v['odds']
                 elif v['name'] == match.away_team.betfair_name:
                     odds.away = v['odds']
                 else:
                     odds.draw = v['odds']
+
+            for selection_id, price_info in over_under_prices.items():
+                if price_info['name'] == over_25_goals:
+                    odds.over = price_info['odds']
+                elif price_info['name'] == under_25_goals:
+                    odds.under = price_info['odds']
             odds.save()
+
+            action = "updated"
+            if created: action = "created"
+            self.stdout.write(self.style.SUCCESS(
+                'Successfully %s odds for match "%s"' % (action, match))
+            )
