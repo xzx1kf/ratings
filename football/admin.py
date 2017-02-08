@@ -4,6 +4,7 @@ from django.db.models import Sum, Q
 from .models import Match, Division, Team, Odds, League, League_Entry
 
 from datetime import datetime, timedelta
+from scipy.stats import poisson
 
 def calculate_team_stats(modelteam, request, queryset):
     for team in queryset:
@@ -69,6 +70,82 @@ def calculate_stats(modeldivision, request, queryset):
 
 calculate_stats.short_description = "Calculate selected league stats"
 
+def refresh_match_stats(modelmatch, request, queryset):
+    for match in queryset:
+        if match.completed:
+            continue
+        else:
+            # calculate expected goals
+            home_goals = (match.home_team.home_attack_strength
+                * match.away_team.away_defense_strength
+                * match.division.attack_strength)
+            away_goals = (match.away_team.away_attack_strength
+                * match.home_team.home_defense_strength
+                * match.division.defense_strength)
+
+            home_team_probs = []
+            away_team_probs = []
+
+            # calculate match probabilities
+            for i in range(0, 6):
+                home_team_probs.append(
+                        round((poisson.pmf(i, home_goals) * 100), 1))
+                away_team_probs.append(
+                        round((poisson.pmf(i, away_goals) * 100), 1))
+
+            match.pfthg = home_goals
+            match.pftag = away_goals
+
+            under = 0
+            over = 0
+
+            # home win %
+            match.home_win = 0
+            match.away_win = 0
+            match.draw = 0
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probs[j]
+                    away = away_team_probs[i]
+                    match.home_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                    else:
+                        over += (home / 10) * (away / 10)
+
+            match.home_win = round(match.home_win, 1)
+
+            # draw %
+            for i in range(0,6):
+                home = home_team_probs[i]
+                away = away_team_probs[i]
+                match.draw += (home / 10) * (away / 10)
+
+                if i < 2:
+                    under += (home / 10) * (away / 10)
+                else:
+                    over += (home / 10) * (away / 10)
+
+            match.draw = round(match.draw, 1)
+
+            # away win %
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probs[i]
+                    away = away_team_probs[j]
+                    match.away_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                    else:
+                        over += (home / 10) * (away / 10)
+
+            match.away_win = round(match.away_win, 1)
+
+            match.under = under
+            match.over = over
+            match.save()
 
 def refresh_league(modelleague, request, queryset):
     for league in queryset:
@@ -82,8 +159,8 @@ def refresh_league(modelleague, request, queryset):
             matches = matches.filter(completed=True)
 
             entry.played = 0
-            entry.won = 0 
-            entry.drawn = 0 
+            entry.won = 0
+            entry.drawn = 0
             entry.lost = 0
             entry.goals_for = 0
             entry.goals_against = 0
@@ -91,7 +168,7 @@ def refresh_league(modelleague, request, queryset):
             entry.points = 0
 
             for m in matches:
-                if m.home_team == entry.team: 
+                if m.home_team == entry.team:
                     if m.ftr == 'H':
                         entry.won += 1
                         entry.points += 3
@@ -148,8 +225,16 @@ class TeamAdmin(admin.ModelAdmin):
     actions = [calculate_team_stats]
 
 class MatchAdmin(admin.ModelAdmin):
+    actions = [refresh_match_stats]
     list_filter = ('completed', 'division')
-    fields = ('division', 'date', 'home_team', 'away_team', 'fthg', 'ftag', 'ftr' )
+    fields = (
+            'division',
+            'date',
+            'home_team',
+            'away_team',
+            'fthg',
+            'ftag',
+        )
     list_select_related = ('division', 'home_team',)
 
     def get_ordering(self, request):
@@ -158,13 +243,94 @@ class MatchAdmin(admin.ModelAdmin):
         else:
             return ['-date', 'division__name', 'home_team__name']
 
+    def save_model(self, request, obj, form, change):
+        if obj.completed:
+            super(MatchAdmin, self).save_model(request, obj, form, change)
+        else:
+            # calculate expected goals
+            home_goals = (obj.home_team.home_attack_strength
+                * obj.away_team.away_defense_strength
+                * obj.division.attack_strength)
+            away_goals = (obj.away_team.away_attack_strength
+                * obj.home_team.home_defense_strength
+                * obj.division.defense_strength)
+
+            home_team_probs = []
+            away_team_probs = []
+
+            # calculate obj probabilities
+            for i in range(0, 6):
+                home_team_probs.append(
+                        round((poisson.pmf(i, home_goals) * 100), 1))
+                away_team_probs.append(
+                        round((poisson.pmf(i, away_goals) * 100), 1))
+
+            obj.pfthg = home_goals
+            obj.pftag = away_goals
+
+            under = 0
+            over = 0
+
+            # home win %
+            obj.home_win = 0
+            obj.away_win = 0
+            obj.draw = 0
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probs[j]
+                    away = away_team_probs[i]
+                    obj.home_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                    else:
+                        over += (home / 10) * (away / 10)
+
+            obj.home_win = round(obj.home_win, 1)
+
+            # draw %
+            for i in range(0,6):
+                home = home_team_probs[i]
+                away = away_team_probs[i]
+                obj.draw += (home / 10) * (away / 10)
+
+                if i < 2:
+                    under += (home / 10) * (away / 10)
+                else:
+                    over += (home / 10) * (away / 10)
+
+            obj.draw = round(obj.draw, 1)
+
+            # away win %
+            for i in range(0,6):
+                for j in range(i+1,6):
+                    home = home_team_probs[i]
+                    away = away_team_probs[j]
+                    obj.away_win += (home / 10) * (away / 10)
+
+                    if j <= 2 and i <= 0:
+                        under += (home / 10) * (away / 10)
+                    else:
+                        over += (home / 10) * (away / 10)
+
+            obj.away_win = round(obj.away_win, 1)
+
+            obj.under = under
+            obj.over = over
+            super(MatchAdmin, self).save_model(request, obj, form, change)
+
+
 class OddsAdmin(admin.ModelAdmin):
     list_filter = ('match__division', 'match__completed')
-    ordering = ['match__date', 'match__division__name', 'match__home_team__name']
+    ordering = [
+            'match__date',
+            'match__division__name',
+            'match__home_team__name']
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "match":
-            kwargs["queryset"] = Match.objects.filter(completed=False) #.order_by('-division', '-date', 'home_team')
-            return super(OddsAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+            kwargs["queryset"] = Match.objects.filter(completed=False)
+            return super(OddsAdmin, self).formfield_for_foreignkey(
+                    db_field, request, **kwargs)
 
 class LeagueAdmin(admin.ModelAdmin):
     actions = [refresh_league]

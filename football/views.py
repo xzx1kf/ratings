@@ -178,6 +178,8 @@ def get_expected_value(match, odds, home, draw, away):
         over_value = odds.over * (match.over / 100)
         over_under_value = (over_value, under_value)
         return match_value, over_under_value
+    else:
+        return (0,0,0), (0,0)
 
 def get_league_positions(match, table):
     """Returns the league positions for the home and away teams."""
