@@ -120,6 +120,7 @@ def match(request, match_id):
             away_win_probability)
 
     return render(request, 'football/match.html', {
+        'match' : m,
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
         'home_goals'    : m.pfthg,

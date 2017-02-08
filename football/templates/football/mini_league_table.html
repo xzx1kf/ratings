@@ -1,9 +1,6 @@
-{% load static %}
-
-<link rel="stylesheet" type="text/css" href="{% static 'football/style.css' %}" />
-<table class="normaltable">
+<table class="w3-table w3-striped w3-hoverable w3-tiny">
     <thead>
-        <tr>
+        <tr class="w3-grey">
             <th class="pos first ">Pos</th>
             <th class="team ">Team</th>
             <th class="played ">P</th>
@@ -12,7 +9,7 @@
         </tr>
     </thead>
     {% for entry in league_table %}
-    <tr class="{% cycle ' even ' ' odd ' %}">
+    <tr>
         <td class="pos first ">{{ forloop.counter }}</td>
         <td class="team ">{{ entry.team.name }}</td>
         <td class="played ">{{ entry.played }}</td>
@@ -21,5 +18,3 @@
     </tr>
     {% endfor %}
 </table>
-
-    
