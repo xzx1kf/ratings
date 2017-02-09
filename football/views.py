@@ -75,22 +75,19 @@ def match(request, match_id):
             away_win_probability += (home / 10) * (away / 10)
 
     # home team last 5 home matches
-    home_team_last_5_matches = Match.objects.filter(
+    home_team_last_5_at_home = Match.objects.filter(
             home_team=m.home_team).exclude(completed=False).order_by('-date')[:5]
-    away_team_last_5_matches = Match.objects.filter(
+    away_team_last_5_away = Match.objects.filter(
             away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
-    last_5_matches = zip(home_team_last_5_matches, away_team_last_5_matches)
 
-    ht_last_5_matches = Match.objects.filter(
+    home_team_last_5 = Match.objects.filter(
             Q(home_team=m.home_team) |
             Q(away_team=m.home_team)
             ).order_by('-date').exclude(completed=False)[:5]
-    at_last_5_matches = Match.objects.filter(
+    away_team_last_5 = Match.objects.filter(
             Q(home_team=m.away_team) |
             Q(away_team=m.away_team)
             ).order_by('-date').exclude(completed=False)[:5]
-    last_5_matches_ha = zip(ht_last_5_matches, at_last_5_matches)
-
 
     # Get the league table associated with this match
     league_table = League.objects.get(
@@ -120,7 +117,6 @@ def match(request, match_id):
             away_win_probability)
 
     return render(request, 'football/match.html', {
-        'match' : m,
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
         'home_goals'    : m.pfthg,
@@ -130,10 +126,12 @@ def match(request, match_id):
         'away_win_probability'      : m.away_win,
         'home_team_probabilities'   : home_team_probabilities,
         'away_team_probabilities'   : away_team_probabilities,
-        'last_5_matches'            : last_5_matches,
+        'home_team_last_5_at_home' : home_team_last_5_at_home,
+        'away_team_last_5_away' : away_team_last_5_away,
+        'home_team_last_5' : home_team_last_5,
+        'away_team_last_5' : away_team_last_5,
         'odds'                      : odds,
         'value'                     : value,
-        'last_5_matches_ha'         : last_5_matches_ha,
         'league_table'              : league_entry,
         'home_entry'                : home_entry,
         'away_entry'                : away_entry,

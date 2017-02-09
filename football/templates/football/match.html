@@ -142,11 +142,11 @@
 
 
 <div class="w3-layout-container">
-    <div class="w3-container w3-padding-16">
+    <div class="w3-container w3-layout-cell w3-padding-16">
         <table class="w3-table w3-bordered w3-hoverable w3-tiny">
             <thead>
                 <tr>
-                    <th class="w3-center w3-dark-grey" colspan="10">Last 5 matches</th>
+                    <th class="w3-center w3-dark-grey" colspan="10">{{ home_team.name }}'s last 5 matches</th>
                 </tr>
                 <tr class="w3-grey">
                     <th>Date</th>
@@ -154,37 +154,68 @@
                     <th>HG</th>
                     <th>AW</th>
                     <th>Away Team</th>
+                </tr>
+            </thead>
+        {% for h in home_team_last_5 %}
+            <tr class="w3-hover-light-grey">
+                <td>{{ h.date|date:"D d M Y" }}</td>
+            {% if h.ftr == 'H' %}
+                <td><b>{{ h.home_team.name }}</b></td>
+            {% else %}
+                <td>{{ h.home_team.name }}</td>
+            {% endif %}
+                <td>{{ h.fthg }}</td>
+                <td>{{ h.ftag }}</td>
+            {% if h.ftr == 'A' %}
+                <td><b>{{ h.away_team.name }}</b></td>
+            {% else %}
+                <td>{{ h.away_team.name }}</td>
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    <div class="w3-container w3-layout-cell w3-padding-16">
+        <table class="w3-table w3-bordered w3-hoverable w3-tiny">
+            <thead>
+                <tr>
+                    <th class="w3-center w3-dark-grey" colspan="10">{{ away_team.name }}'s last 5 matches</th>
+                </tr>
+                <tr class="w3-grey">
                     <th>Date</th>
                     <th>Home Team</th>
                     <th>HG</th>
-                    <th>AG</th>
+                    <th>AW</th>
                     <th>Away Team</th>
                 </tr>
             </thead>
-            {% for h, a in last_5_matches_ha %}
-            <tr class="w3-hover-green">
+        {% for h in away_team_last_5 %}
+            <tr class="w3-hover-light-grey">
                 <td>{{ h.date|date:"D d M Y" }}</td>
+            {% if h.ftr == 'H' %}
+                <td><b>{{ h.home_team.name }}</b></td>
+            {% else %}
                 <td>{{ h.home_team.name }}</td>
+            {% endif %}
                 <td>{{ h.fthg }}</td>
                 <td>{{ h.ftag }}</td>
+            {% if h.ftr == 'A' %}
+                <td><b>{{ h.away_team.name }}</b></td>
+            {% else %}
                 <td>{{ h.away_team.name }}</td>
-                <td>{{ a.date|date:"D d M Y" }}</td>
-                <td>{{ a.home_team.name }}</td>
-                <td>{{ a.fthg }}</td>
-                <td>{{ a.ftag }}</td>
-                <td>{{ a.away_team.name }}</td>
+            {% endif %}
             </tr>
-            {% endfor %}
+        {% endfor %}
         </table>
     </div>
 </div>
 
 <div class="w3-layout-container">
-    <div class="w3-container w3-padding-16">
+    <div class="w3-container w3-layout-cell w3-padding-16">
         <table class="w3-table w3-bordered w3-tiny">
             <thead>
                 <tr>
-                    <th class="w3-center w3-dark-grey" colspan="10">Last 5 home/away matches</th>
+                    <th class="w3-center w3-dark-grey" colspan="10">{{ home_team.name }}'s last 5 home matches</th>
                 </tr>
                 <tr class="w3-grey">
                     <th>Date</th>
@@ -192,27 +223,58 @@
                     <th>HG</th>
                     <th>AW</th>
                     <th>Away Team</th>
+                </tr>
+            </thead>
+            {% for h in home_team_last_5_at_home %}
+            <tr class="w3-hover-light-grey">
+                <td>{{ h.date|date:"D d M Y" }}</td>
+            {% if h.ftr == 'H' %}
+                <td><b>{{ h.home_team.name }}</b></td>
+            {% else %}
+                <td>{{ h.home_team.name }}</td>
+            {% endif %}
+                <td>{{ h.fthg }}</td>
+                <td>{{ h.ftag }}</td>
+            {% if h.ftr == 'A' %}
+                <td><b>{{ h.away_team.name }}</b></td>
+            {% else %}
+                <td>{{ h.away_team.name }}</td>
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    <div class="w3-container w3-layout-cell w3-padding-16">
+        <table class="w3-table w3-bordered w3-tiny">
+            <thead>
+                <tr>
+                    <th class="w3-center w3-dark-grey" colspan="10">{{ away_team.name }}'s last 5 away matches</th>
+                </tr>
+                <tr class="w3-grey">
                     <th>Date</th>
                     <th>Home Team</th>
                     <th>HG</th>
-                    <th>AG</th>
+                    <th>AW</th>
                     <th>Away Team</th>
                 </tr>
             </thead>
-            {% for h, a in last_5_matches %}
-            <tr class="w3-hover-pale-red">
+            {% for h in away_team_last_5_away %}
+            <tr class="w3-hover-light-grey">
                 <td>{{ h.date|date:"D d M Y" }}</td>
+            {% if h.ftr == 'H' %}
+                <td><b>{{ h.home_team.name }}</b></td>
+            {% else %}
                 <td>{{ h.home_team.name }}</td>
+            {% endif %}
                 <td>{{ h.fthg }}</td>
                 <td>{{ h.ftag }}</td>
+            {% if h.ftr == 'A' %}
+                <td><b>{{ h.away_team.name }}</b></td>
+            {% else %}
                 <td>{{ h.away_team.name }}</td>
-                <td>{{ a.date|date:"D d M Y" }}</td>
-                <td>{{ a.home_team.name }}</td>
-                <td>{{ a.fthg }}</td>
-                <td>{{ a.ftag }}</td>
-                <td>{{ a.away_team.name }}</td>
+            {% endif %}
             </tr>
-            {% endfor %}
+        {% endfor %}
         </table>
     </div>
 </div>
