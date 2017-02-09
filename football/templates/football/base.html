@@ -10,20 +10,20 @@
     </head>
 
     <body>
-        <div class="w3-layout-container">
         <header></header>
-        <nav>
-            <li></li>
+        <nav class="w3-layout-container ">
+            {% include "football/navigation.html" %}
         </nav>
-        <section class="w3-container w3-layout-cell">
-            {% block content %}
-            {% endblock %}
-        </section>
-        <aside class="w3-container w3-layout-cell">
-            {% block aside %}
-            {% endblock %}
-        </aside>
-        <footer></footer>
+        <div class="w3-layout-container">
+            <section class="w3-container w3-layout-cell">
+                {% block content %}
+                {% endblock %}
+            </section>
+            <aside class="w3-container w3-layout-cell">
+                {% block aside %}
+                {% endblock %}
+            </aside>
+            <footer></footer>
         </div>
     </body>
 </html>

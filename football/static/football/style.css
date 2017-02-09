@@ -1,7 +1,7 @@
 .last-10-games {
     display: inline-block;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
+    margin: 0 0;
+    padding: 0 0;
 }
 
 .last-10-games li {
@@ -9,11 +9,9 @@
     display: block;
     float: left;
     font-size: 1em;
-    height: 16px;
-    line-height: 1.4;
+    line-height: 1.2;
     margin-right: 2px;
     margin-bottom: 0;
-    padding: 0;
     text-align: center;
     width: 22px;
 }

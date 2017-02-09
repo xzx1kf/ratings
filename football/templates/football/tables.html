@@ -1,46 +1,58 @@
+{% extends "football/base.html" %}
 
-{% load static %}
+{% block title %}Football Analysis - Tables{% endblock %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'football/style.css' %}" />
+{% block content %}
 
-<form actions="{% url 'football:fixtures' %}" method="post">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit" />
-</form>
 
-<table class="normaltable">
+<div class="w3-container">
+    <div class="w3-dropdown-hover w3-padding-16">
+        <button class="w3-btn">Select League</button>
+        <div class="w3-dropdown-content w3-border">
+            {% for league in leagues %}
+            <a href="{% url 'football:tables' league.division.id %}">{{ league.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="w3-container w3-layout-cell">
+<table class="w3-table-all">
     <thead>
-        <tr>
-            <th class="pos first ">Pos</th>
-            <th class="team ">Team</th>
-            <th class="played ">P</th>
-            <th class="won ">W</th>
-            <th class="drawn">D</th>
-            <th class="lost ">L</th>
-            <th class="for ">F</th>
-            <th class="against ">A</th>
-            <th class="diff unsigned ">GD</th>
-            <th class="points last ">Pts</th>
-            <th class="points last ">Last 10 games</th>
+        <tr  class="w3-dark-grey">
+            <th colspan="11">
+                {{ name }} Table
+            </th>
+        <tr class="w3-grey">
+            <th>Pos</th>
+            <th>Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>F</th>
+            <th>A</th>
+            <th>GD</th>
+            <th>Pts</th>
+            <th>Last 10 games</th>
         </tr>
     </thead>
     {% for entry in league_table %}
-    <tr class="{% cycle ' even ' ' odd ' %}">
-        <td class="pos first ">{{ forloop.counter }}</td>
-        <td class="team ">{{ entry.team.name }}</td>
-        <td class="played ">{{ entry.played }}</td>
-        <td class="won ">{{ entry.won }}</td>
-        <td class="drawn ">{{ entry.drawn }}</td>
-        <td class="lost ">{{ entry.lost }}</td>
-        <td class="for ">{{ entry.goals_for }}</td>
-        <td class="against ">{{ entry.goals_against }}</td>
-        <td class="diff unsigned ">{{ entry.goal_diff }}</td>
-        <td class="points last ">{{ entry.points }}</td>
-        <td class="last-10-games">
-            <ol>
+    <tr class="w3-hover-pale-red">
+        <td>{{ forloop.counter }}</td>
+        <td>{{ entry.team.name }}</td>
+        <td>{{ entry.played }}</td>
+        <td>{{ entry.won }}</td>
+        <td>{{ entry.drawn }}</td>
+        <td>{{ entry.lost }}</td>
+        <td>{{ entry.goals_for }}</td>
+        <td>{{ entry.goals_against }}</td>
+        <td>{{ entry.goal_diff }}</td>
+        <td>{{ entry.points }}</td>
+        <td>
+            <ol class="last-10-games">
             {% for r in entry.record %}
-                <li class={{r}}>
+                <li class={{ r }}>
                     <span>{{ r }}</span>
                 </li>
             {% endfor %}
@@ -49,3 +61,5 @@
     </tr>
     {% endfor %}
 </table>
+</div>
+{% endblock %}

@@ -46,7 +46,7 @@
             <h3> - Predicted Score - </h3>
         </div>
         <div class="w3-container w3-layout-cell w3-center">
-            <h3>{{ home_goals|floatformat:"0" }}</h3>
+            <h3>{{ away_goals|floatformat:"0" }}</h3>
         </div>
     </div>
 </div>
@@ -62,22 +62,29 @@
                     <th>2</th>
                 <tr>
             </thead>
-                <td>Probability:</td>
+            <tr>
+                <td>Probability</td>
                 <td>{{ home_win_probability }}%</td>
                 <td>{{ draw_probability }}%</td>
                 <td>{{ away_win_probability }}%</td>
             </tr>
             <tr>
-                <td>Odds:</td>
+                <td>Odds</td>
                 <td>{{ odds.home }}</td>
                 <td>{{ odds.draw }}</td>
                 <td>{{ odds.away }}</td>
             </tr>
             <tr>
-                <td>Expected Value:</td>
+                <td>Expected Value</td>
                 {% for v in value %}
                     <td>{{ v|floatformat:"2" }}</td>
                 {% endfor %}
+            </tr>
+            <tr class="w3-pale-red">
+                <td>Stake</td>
+                <td>£{{ home_stake }}</td>
+                <td>£{{ draw_stake }}</td>
+                <td>£{{ away_stake }}</td>
             </tr>
         </table>
     </div>
@@ -91,20 +98,25 @@
                 </tr>
             </thead>
             <tr>
-                <td>Probability:</td>
+                <td>Probability</td>
                 <td>{{ over|floatformat:"1" }}%</td>
                 <td>{{ under|floatformat:"1" }}%</td>
             </tr>
             <tr>
-                <td>Odds:</td>
+                <td>Odds</td>
                 <td>{{ odds.over }}</td>
                 <td>{{ odds.under }}</td>
             </tr>
             <tr>
-                <td>Expected Value:</td>
+                <td>Expected Value</td>
                 {% for v in uo_value %}
                     <td>{{ v|floatformat:"2" }}</td>
                 {% endfor %}
+            </tr>
+            <tr class="w3-pale-red">
+                <td>Stake</td>
+                <td>£{{ over_stake }}</td>
+                <td>£{{ under_stake }}</td>
             </tr>
         </table>
     </div>

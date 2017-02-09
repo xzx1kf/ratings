@@ -1,9 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponseRedirect
 from django.db.models import Sum, Q
-from django.urls import reverse
-from django.views import generic
 from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Match, Team, Division, Odds, League, League_Entry
@@ -11,30 +8,21 @@ from .forms import AnalysisForm, LeagueForm
 
 from scipy.stats import poisson
 
-def fixtures(request):
-
-    fixtures = []
-    if request.method == 'POST':
-        form = LeagueForm(request.POST)
-        if form.is_valid():
-            division = get_object_or_404(
-                    Division, pk=request.POST.get('division'))
-            fixtures = Match.objects.filter(
-                    completed=False, division=division).order_by(
-                    'date', 'home_team__name')
-    else:
-        division = Division.objects.first()
-        form = LeagueForm(initial = { 'division': division } )
-        fixtures = Match.objects.filter(
-                completed=False,
-                division=division,
-            ).order_by(
-                'date',
-                'home_team__name'
-            )
+def fixtures(request, division_id=Division.objects.first().id):
+    division = Division.objects.get(pk=division_id)
+    leagues = League.objects.filter(active=True)
+    name = leagues.get(division=division)
+    fixtures = Match.objects.filter(
+            completed=False,
+            division=division,
+        ).order_by(
+            'date',
+            'home_team__name'
+        )
     return render(request, 'football/fixtures.html', {
         'fixtures'  : fixtures,
-        'form'      : form,
+        'leagues' : leagues,
+        'name': name,
     })
 
 
@@ -116,6 +104,13 @@ def match(request, match_id):
             draw_probability,
             away_win_probability)
 
+    # calculate stakes
+    home_stake = 200 /(2 * odds.home * (1 - (min(home_win_probability, 60) / 100)))
+    draw_stake = 200 /(2 * odds.draw * (1 - (min(draw_probability, 60) / 100)))
+    away_stake = 200 /(2 * odds.away * (1 - (min(away_win_probability, 60) / 100)))
+    over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
+    under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
+
     return render(request, 'football/match.html', {
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
@@ -140,28 +135,24 @@ def match(request, match_id):
         'uo_value'                  : uo_value,
         'home_team_position': home_team_position,
         'away_team_position': away_team_position,
+        'home_stake' : round(home_stake, 2),
+        'draw_stake' : round(draw_stake, 2),
+        'away_stake' : round(away_stake, 2),
+        'over_stake' : round(over_stake, 2),
+        'under_stake' : round(under_stake, 2),
         })
 
-def tables(request):
-    league_table = []
-    if request.method == 'POST':
-        form = LeagueForm(request.POST)
-        if form.is_valid():
-            division = get_object_or_404(
-                    Division, pk=request.POST.get('division'))
-            league = League.objects.get(division=division, active=True)
-            league_table = League_Entry.objects.filter(table=league).order_by(
-                '-points', '-goal_diff')
-    else:
-        division = Division.objects.first()
-        form = LeagueForm(initial = { 'division': division } )
-        league = League.objects.get(division=division, active=True)
-        league_table = League_Entry.objects.filter(table=league).order_by(
-            '-points', '-goal_diff')
+def tables(request, division_id=Division.objects.first().id):
+    division = Division.objects.get(pk=division_id)
+    leagues = League.objects.filter(active=True)
+    league = leagues.get(division=division, active=True)
+    league_table = League_Entry.objects.filter(table=league).order_by(
+        '-points', '-goal_diff')
 
     return render(request, 'football/tables.html', {
         'league_table'  : league_table,
-        'form'      : form,
+        'leagues' : leagues,
+        'name' : league.name,
         })
 
 def get_expected_value(match, odds, home, draw, away):
