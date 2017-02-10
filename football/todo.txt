@@ -1,9 +1,3 @@
-# change load_data.py to three separate scripts load_teams.py load_divisions.py
-  and load_matches.py
+*   View historial matches with predicted and actual results.
 
-# sort out the required pages and their names. analysis should probably be
-  something like football/match/06/detail
 
-# Tidy up the web page for a match.
-
-# Add current league position

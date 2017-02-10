@@ -1,20 +1,19 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.db.models import Sum, Q
-from django.core.exceptions import ObjectDoesNotExist
-
-from .models import Match, Team, Division, Odds, League, League_Entry
-from .forms import AnalysisForm, LeagueForm
-
 from scipy.stats import poisson
 
+from .forms import AnalysisForm, LeagueForm
+from .models import Match, Team, Division, Odds, League, League_Entry
+
+
 def fixtures(request, division_id=Division.objects.first().id):
-    division = Division.objects.get(pk=division_id)
     leagues = League.objects.filter(active=True)
-    name = leagues.get(division=division)
+    name = leagues.get(division__id=division_id)
     fixtures = Match.objects.filter(
             completed=False,
-            division=division,
+            division__id=division_id,
         ).order_by(
             'date',
             'home_team__name'
@@ -143,9 +142,8 @@ def match(request, match_id):
         })
 
 def tables(request, division_id=Division.objects.first().id):
-    division = Division.objects.get(pk=division_id)
     leagues = League.objects.filter(active=True)
-    league = leagues.get(division=division, active=True)
+    league = leagues.get(division__id=division_id, active=True)
     league_table = League_Entry.objects.filter(table=league).order_by(
         '-points', '-goal_diff')
 
@@ -154,6 +152,16 @@ def tables(request, division_id=Division.objects.first().id):
         'leagues' : leagues,
         'name' : league.name,
         })
+
+def teams(request, division_id=Division.objects.first().id):
+    teams = Team.objects.filter(division__id=division_id)
+
+    return render(request, 'football/teams.html', {
+        'teams' : teams,
+        })
+
+def team_detail(request, team_id):
+    pass
 
 def get_expected_value(match, odds, home, draw, away):
     """Return the expected value for the given odds."""

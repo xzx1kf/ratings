@@ -12,4 +12,6 @@ urlpatterns = [
     url(r'^match/(?P<match_id>[0-9]+)/$', views.match, name='match'),
     url(r'^tables/$', views.tables, name='default_tables'),
     url(r'^tables/(?P<division_id>[0-9]+)/$', views.tables, name='tables'),
+    url(r'^teams/$', views.teams, name='default_teams'),
+    url(r'^teams/(?P<division_id>[0-9]+)/$', views.teams, name='teams'),
     ]
