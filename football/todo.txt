@@ -1,3 +1,5 @@
 *   View historial matches with predicted and actual results.
 
-
+*   To reuse the match view for the historical matches I think I need to change
+    it so that it stores the probabilities and whatever else it currently 
+    calculates on the fly.

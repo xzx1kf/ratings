@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^tables/(?P<division_id>[0-9]+)/$', views.tables, name='tables'),
     url(r'^teams/$', views.teams, name='default_teams'),
     url(r'^teams/(?P<division_id>[0-9]+)/$', views.teams, name='teams'),
+    url(r'^team/(?P<team_id>[0-9]+)/$', views.team, name='team'),
     ]

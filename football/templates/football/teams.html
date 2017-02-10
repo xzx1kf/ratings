@@ -1,12 +1,27 @@
 {% extends 'football/base.html' %}
 
+{% block title %}Football Analysis - Teams{% endblock %}
+
 {% block content %}
 
-<table>
-{% for team in teams %}
-<tr>
-    <td>{{ team.name }}</td>
-</tr>
+<div class="w3-container">
+    <div class="w3-dropdown-hover w3-padding-16">
+        <button class="w3-btn">{{ name }}</button>
+        <div class="w3-dropdown-content w3-border">
+            {% for league in leagues %}
+            <a href="{% url 'football:teams' league.division.id %}">{{ league.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% for list_of_teams in teams %}
+<div class="w3-container w3-layout-cell">
+    <ul>
+    {% for team in list_of_teams %}
+        <li><a href="{% url 'football:team' team.id %}">{{ team.name }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
 {% endfor %}
-</table>
 {% endblock %}

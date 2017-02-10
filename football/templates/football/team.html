@@ -1,0 +1,10 @@
+{% extends 'football/base.html' %}
+
+{% block title %}Football Analysis - Team{% endblock %}
+
+{% block content %}
+
+{% for match in matches %}
+    <p>{{ match.date }} -  {{ match.home_team }} vs {{ match.away_team }}
+{% endfor %}
+{% endblock %}

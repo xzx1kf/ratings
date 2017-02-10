@@ -153,15 +153,30 @@ def tables(request, division_id=Division.objects.first().id):
         'name' : league.name,
         })
 
-def teams(request, division_id=Division.objects.first().id):
-    teams = Team.objects.filter(division__id=division_id)
+def team(request, team_id):
+    matches = Match.objects.filter(
+            Q(home_team__id=team_id) |
+            Q(away_team__id=team_id)).order_by('-date')[:15]
 
-    return render(request, 'football/teams.html', {
-        'teams' : teams,
+    return render(request, 'football/team.html', {
+        'matches' : matches,
         })
 
-def team_detail(request, team_id):
-    pass
+def teams(request, division_id=Division.objects.first().id):
+    leagues = League.objects.filter(active=True)
+    league = leagues.get(division__id=division_id, active=True)
+    teams = Team.objects.filter(division__id=division_id).order_by('name')
+
+    list_of_teams = []
+
+    for i in range(0, teams.count(), 5):
+        list_of_teams.append(teams[i:i+5])
+
+    return render(request, 'football/teams.html', {
+        'leagues' : leagues,
+        'name': league.name,
+        'teams' : list_of_teams,
+        })
 
 def get_expected_value(match, odds, home, draw, away):
     """Return the expected value for the given odds."""
