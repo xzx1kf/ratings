@@ -152,13 +152,13 @@
             <tr>
                 <td>{{ home_team.name }}</td>
                 {% for p in home_team_probabilities %}
-                <td class="w3-center">{{ p }}%</td>
+                <td class="w3-center">{{ p.probability }}%</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>{{ away_team.name }}</td>
                 {% for p in away_team_probabilities %}
-                <td class="w3-center">{{ p }}%</td>
+                <td class="w3-center">{{ p.probability }}%</td>
                 {% endfor %}
             </tr>
         </table>

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum, Q
 
-from .models import Match, Division, Team, Odds, League, League_Entry
+from .models import *
 
 from datetime import datetime, timedelta
 from scipy.stats import poisson
@@ -83,15 +83,37 @@ def refresh_match_stats(modelmatch, request, queryset):
                 * match.home_team.home_defense_strength
                 * match.division.defense_strength)
 
-            home_team_probs = []
-            away_team_probs = []
+            probability_type = Probability_Type.objects.get(name='goals')
 
             # calculate match probabilities
             for i in range(0, 6):
-                home_team_probs.append(
-                        round((poisson.pmf(i, home_goals) * 100), 1))
-                away_team_probs.append(
-                        round((poisson.pmf(i, away_goals) * 100), 1))
+                home_pmf = round((poisson.pmf(i, home_goals) * 100), 1)
+                away_pmf = round((poisson.pmf(i, away_goals) * 100), 1)
+                home_probs, created = Probability.objects.get_or_create(
+                        match=match,
+                        team=match.home_team,
+                        probability_type=probability_type,
+                        probability=home_pmf,
+                        name=i)
+                away_probs, created  = Probability.objects.get_or_create(
+                        match=match,
+                        team=match.away_team,
+                        probability_type=probability_type,
+                        probability=away_pmf,
+                        name=i)
+                home_probs.save()
+                away_probs.save()
+
+            home_probs = Probability.objects.filter(
+                    match=match,
+                    team=match.home_team,
+                    probability_type=probability_type,
+                    )
+            away_probs = Probability.objects.filter(
+                    match=match,
+                    team=match.away_team,
+                    probability_type=probability_type,
+                    )
 
             match.pfthg = home_goals
             match.pftag = away_goals
@@ -105,8 +127,8 @@ def refresh_match_stats(modelmatch, request, queryset):
             match.draw = 0
             for i in range(0,6):
                 for j in range(i+1,6):
-                    home = home_team_probs[j]
-                    away = away_team_probs[i]
+                    home = home_probs[j].probability
+                    away = away_probs[i].probability
                     match.home_win += (home / 10) * (away / 10)
 
                     if j <= 2 and i <= 0:
@@ -118,8 +140,8 @@ def refresh_match_stats(modelmatch, request, queryset):
 
             # draw %
             for i in range(0,6):
-                home = home_team_probs[i]
-                away = away_team_probs[i]
+                home = home_probs[i].probability
+                away = away_probs[i].probability
                 match.draw += (home / 10) * (away / 10)
 
                 if i < 2:
@@ -132,8 +154,8 @@ def refresh_match_stats(modelmatch, request, queryset):
             # away win %
             for i in range(0,6):
                 for j in range(i+1,6):
-                    home = home_team_probs[i]
-                    away = away_team_probs[j]
+                    home = home_probs[i].probability
+                    away = away_probs[j].probability
                     match.away_win += (home / 10) * (away / 10)
 
                     if j <= 2 and i <= 0:
@@ -355,3 +377,5 @@ admin.site.register(Division, DivisionAdmin)
 admin.site.register(Odds, OddsAdmin)
 admin.site.register(League, LeagueAdmin)
 admin.site.register(League_Entry, League_EntryAdmin)
+admin.site.register(Probability_Type)
+admin.site.register(Probability)

@@ -130,6 +130,23 @@ class Match(models.Model):
         unique_together = ["date", "home_team", "away_team"]
 
 
+class Probability_Type(models.Model):
+    name =  models.CharField(default="", max_length=200)
+
+class Probability(models.Model):
+    match = models.ForeignKey(Match)
+    team = models.ForeignKey(Team)
+    probability_type = models.ForeignKey(Probability_Type)
+    name = models.CharField(default="", max_length=100)
+    probability = models.FloatField(default=0)
+
+    def __str__(self):
+        return("%s- %s" % (self.match, self.name))
+
+    class Meta:
+        unique_together = ('match', 'team', 'name', 'probability_type')
+
+
 class Odds(models.Model):
     match = models.ForeignKey(
         Match,

@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from scipy.stats import poisson
 
 from .forms import AnalysisForm, LeagueForm
-from .models import Match, Team, Division, Odds, League, League_Entry
+from .models import *
 
 
 def fixtures(request, division_id=Division.objects.first().id):
@@ -29,44 +29,30 @@ def fixtures(request, division_id=Division.objects.first().id):
 def match(request, match_id):
     m = Match.objects.get(id=match_id)
 
-    home_team_probabilities = []
-    away_team_probabilities = []
+    probability_type = Probability_Type.objects.get(name='goals')
+    home_team_probabilities = Probability.objects.filter(
+            match=m,
+            team=m.home_team,
+            probability_type=probability_type).order_by('name')
+    away_team_probabilities = Probability.objects.filter(
+            match=m,
+            team=m.away_team,
+            probability_type=probability_type).order_by('name')
 
-    for i in range(0,6):
-        home_team_probabilities.append(
-                round((poisson.pmf(i, m.pfthg) * 100), 1))
-        away_team_probabilities.append(
-                round((poisson.pmf(i, m.pftag) * 100), 1))
-
-    # calculate match probabilities
-    # home win %
-    home_win_probability = 0
-    for i in range(0,6):
-        for j in range(i+1,6):
-            home = home_team_probabilities[j]
-            away = away_team_probabilities[i]
-            home_win_probability += (home / 10) * (away / 10)
-
-    # draw %
-    draw_probability = 0
-    for i in range(0,6):
-        home = home_team_probabilities[i]
-        away = away_team_probabilities[i]
-        draw_probability += (home / 10) * (away / 10)
-
-    # away win %
-    away_win_probability = 0
-    for i in range(0,6):
-        for j in range(i+1,6):
-            home = home_team_probabilities[i]
-            away = away_team_probabilities[j]
-            away_win_probability += (home / 10) * (away / 10)
 
     # home team last 5 home matches
     home_team_last_5_at_home = Match.objects.filter(
-            home_team=m.home_team).exclude(completed=False).order_by('-date')[:5]
+            date__lte=m.date,
+            home_team=m.home_team,
+        ).exclude(
+            completed=False
+        ).order_by('-date')[:5]
     away_team_last_5_away = Match.objects.filter(
-            away_team=m.away_team).exclude(completed=False).order_by('-date')[:5]
+            date__lte=m.date,
+            away_team=m.away_team,
+        ).exclude(
+            completed=False
+        ).order_by('-date')[:5]
 
     home_team_last_5 = Match.objects.filter(
             Q(home_team=m.home_team) |
@@ -96,10 +82,7 @@ def match(request, match_id):
 
     value, uo_value = get_expected_value(
             m,
-            odds,
-            home_win_probability,
-            draw_probability,
-            away_win_probability)
+            odds)
 
     # calculate stakes
     home_stake = 0
@@ -109,9 +92,9 @@ def match(request, match_id):
     under_stake = 0
 
     if odds.home and odds.away and odds.draw and odds.over and odds.under > 0:
-        home_stake = 200 /(2 * odds.home * (1 - (min(home_win_probability, 60) / 100)))
-        draw_stake = 200 /(2 * odds.draw * (1 - (min(draw_probability, 60) / 100)))
-        away_stake = 200 /(2 * odds.away * (1 - (min(away_win_probability, 60) / 100)))
+        home_stake = 200 /(2 * odds.home * (1 - (min(m.home_win, 60) / 100)))
+        draw_stake = 200 /(2 * odds.draw * (1 - (min(m.draw, 60) / 100)))
+        away_stake = 200 /(2 * odds.away * (1 - (min(m.away_win, 60) / 100)))
         over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
         under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
 
@@ -195,14 +178,14 @@ def teams(request, division_id=Division.objects.first().id):
         'teams' : list_of_teams,
         })
 
-def get_expected_value(match, odds, home, draw, away):
+def get_expected_value(match, odds):
     """Return the expected value for the given odds."""
     value = None
     uo_value = None
     if odds is not None:
-        home_value = odds.home * (home / 100)
-        draw_value = odds.draw * (draw / 100)
-        away_value = odds.away * (away / 100)
+        home_value = odds.home * (match.home_win / 100)
+        draw_value = odds.draw * (match.draw / 100)
+        away_value = odds.away * (match.away_win / 100)
         match_value = (home_value, draw_value, away_value)
         under_value = odds.under * (match.under / 100)
         over_value = odds.over * (match.over / 100)
