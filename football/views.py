@@ -22,6 +22,7 @@ def fixtures(request, division_id=Division.objects.first().id):
         'fixtures'  : fixtures,
         'leagues' : leagues,
         'name': name,
+        'historical_display' : False,
     })
 
 
@@ -91,10 +92,7 @@ def match(request, match_id):
             m, league_entry)
 
     # calculate the expected value for the given odds.
-    try:
-        odds = Odds.objects.get(match=m)
-    except ObjectDoesNotExist:
-        odds = None
+    odds, created = Odds.objects.get_or_create(match=m)
 
     value, uo_value = get_expected_value(
             m,
@@ -104,11 +102,18 @@ def match(request, match_id):
             away_win_probability)
 
     # calculate stakes
-    home_stake = 200 /(2 * odds.home * (1 - (min(home_win_probability, 60) / 100)))
-    draw_stake = 200 /(2 * odds.draw * (1 - (min(draw_probability, 60) / 100)))
-    away_stake = 200 /(2 * odds.away * (1 - (min(away_win_probability, 60) / 100)))
-    over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
-    under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
+    home_stake = 0
+    away_stake = 0
+    draw_stake = 0
+    over_stake = 0
+    under_stake = 0
+
+    if odds.home and odds.away and odds.draw and odds.over and odds.under > 0:
+        home_stake = 200 /(2 * odds.home * (1 - (min(home_win_probability, 60) / 100)))
+        draw_stake = 200 /(2 * odds.draw * (1 - (min(draw_probability, 60) / 100)))
+        away_stake = 200 /(2 * odds.away * (1 - (min(away_win_probability, 60) / 100)))
+        over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
+        under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
 
     return render(request, 'football/match.html', {
         'home_team'     : m.home_team,
@@ -153,14 +158,26 @@ def tables(request, division_id=Division.objects.first().id):
         'name' : league.name,
         })
 
-def team(request, team_id):
-    matches = Match.objects.filter(
-            Q(home_team__id=team_id) |
-            Q(away_team__id=team_id)).order_by('-date')[:15]
 
-    return render(request, 'football/team.html', {
-        'matches' : matches,
-        })
+def team(request, team_id):
+    team = Team.objects.get(pk=team_id)
+    leagues = League.objects.filter(active=True)
+    name = leagues.get(division__id=team.division_id)
+    fixtures = Match.objects.filter(
+            Q(home_team__id=team_id) |
+            Q(away_team__id=team_id),
+            completed=True,
+            division__id=team.division_id,
+        ).order_by(
+            '-date',
+            'home_team__name'
+            )[:10]
+    return render(request, 'football/fixtures.html', {
+        'fixtures'  : fixtures,
+        'leagues' : leagues,
+        'name': name,
+        'historical_display': True,
+    })
 
 def teams(request, division_id=Division.objects.first().id):
     leagues = League.objects.filter(active=True)

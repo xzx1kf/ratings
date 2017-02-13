@@ -4,7 +4,9 @@
 
 {% block content %}
 
+<ul>
 {% for match in matches %}
-    <p>{{ match.date }} -  {{ match.home_team }} vs {{ match.away_team }}
+<li><a href="{% url 'football:match' match.id %}">{{ match.date }} -  {{ match.home_team }} vs {{ match.away_team }} {{ match.ftr }}"</a></li>
 {% endfor %}
+</ul>
 {% endblock %}

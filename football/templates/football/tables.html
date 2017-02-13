@@ -6,7 +6,7 @@
 
 
 <div class="w3-container">
-    <div class="w3-dropdown-hover w3-padding-16">
+    <div class="w3-dropdown-hover ">
         <button class="w3-btn">Select League</button>
         <div class="w3-dropdown-content w3-border">
             {% for league in leagues %}
@@ -16,8 +16,8 @@
     </div>
 </div>
 
-<div class="w3-container w3-layout-cell">
-<table class="w3-table-all">
+<div class="w3-container w3-layout-cell w3-padding-16">
+<table class="w3-table-all ">
     <thead>
         <tr  class="w3-dark-grey">
             <th colspan="11">
@@ -40,7 +40,7 @@
     {% for entry in league_table %}
     <tr class="w3-hover-pale-red">
         <td>{{ forloop.counter }}</td>
-        <td>{{ entry.team.name }}</td>
+        <td><a href="{% url 'football:team' entry.team.id %}">{{ entry.team.name }}</a></td>
         <td>{{ entry.played }}</td>
         <td>{{ entry.won }}</td>
         <td>{{ entry.drawn }}</td>

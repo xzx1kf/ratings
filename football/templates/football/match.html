@@ -49,6 +49,19 @@
             <h3>{{ away_goals|floatformat:"0" }}</h3>
         </div>
     </div>
+    {% if historical_display %}
+    <div class="w3-layout-row">
+        <div class="w3-container w3-layout-cell w3-center">
+            <h3>{{ home_goals|floatformat:"0" }}</h3>
+        </div>
+        <div class="w3-container w3-layout-cell w3-center">
+            <h3> - Predicted Score - </h3>
+        </div>
+        <div class="w3-container w3-layout-cell w3-center">
+            <h3>{{ away_goals|floatformat:"0" }}</h3>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <div class="w3-layout-container">

@@ -225,6 +225,15 @@ class TeamAdmin(admin.ModelAdmin):
     actions = [calculate_team_stats]
 
 class MatchAdmin(admin.ModelAdmin):
+    list_display = (
+            'division',
+            'date',
+            'home_team',
+            'away_team',
+            'fthg',
+            'ftag',
+            )
+    list_editable = ('fthg', 'ftag')
     actions = [refresh_match_stats]
     list_filter = ('completed', 'division')
     fields = (

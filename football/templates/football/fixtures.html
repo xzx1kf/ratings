@@ -4,8 +4,9 @@
 
 {% block content %}
 
+{% if not historical_display %}
 <div class="w3-container">
-    <div class="w3-dropdown-hover w3-padding-16">
+    <div class="w3-dropdown-hover ">
         <button class="w3-btn">{{ name }}</button>
         <div class="w3-dropdown-content w3-border">
             {% for league in leagues %}
@@ -14,8 +15,13 @@
         </div>
     </div>
 </div>
+{% endif %}
 
-<div class="w3-container w3-layout-cell">
+{% if not historical_display %}
+<div class="w3-container w3-layout-cell w3-padding-16">
+    {% else %}
+<div class="w3-container w3-layout-cell ">
+    {% endif %}
     <table class="w3-table-all">
         <tr class="w3-dark-grey">
             <th>Date</th>
@@ -28,6 +34,10 @@
             <th></th>
             <th>A</th>
             <th>Detail</th>
+            {% if historical_display %}
+            <th>H</th>
+            <th>A</th>
+            {% endif %}
         </tr>
         {% for m in fixtures %}
         <tr class="w3-hover-grey">
@@ -41,6 +51,10 @@
             <td> - </td>
             <td>{{ m.pftag|floatformat:"0" }}</td>
             <td><a href="{% url 'football:match' m.id %}">detail</a></td>
+            {% if historical_display %}
+            <td>{{ m.fthg }}</td>
+            <td>{{ m.ftag }}</td>
+            {% endif %}
         </tr>
         {% endfor %}
     </table>
