@@ -9,25 +9,21 @@ from scipy.stats import poisson
 def calculate_team_stats(modelteam, request, queryset):
     for team in queryset:
         q = Match.objects.filter(home_team=team)
-        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
         q = q.exclude(completed=False)
         q = q.order_by('-date')[:19]
         team.fthg = q.aggregate(Sum('fthg')).get('fthg__sum')
 
         q = Match.objects.filter(away_team=team)
-        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
         q = q.exclude(completed=False)
         q = q.order_by('-date')[:19]
         team.ftag = q.aggregate(Sum('ftag')).get('ftag__sum')
 
         q = Match.objects.filter(home_team=team)
-        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
         q = q.exclude(completed=False)
         q = q.order_by('-date')[:19]
         team.fthgc = q.aggregate(Sum('ftag')).get('ftag__sum')
 
         q = Match.objects.filter(away_team=team)
-        #q = q.filter(date__gte=datetime.today() - timedelta(days=200))
         q = q.exclude(completed=False)
         q = q.order_by('-date')[:19]
         team.ftagc = q.aggregate(Sum('fthg')).get('fthg__sum')
@@ -70,103 +66,105 @@ def calculate_stats(modeldivision, request, queryset):
 
 calculate_stats.short_description = "Calculate selected league stats"
 
+def calculate_match_probabilities(match):
+    # calculate expected goals
+    home_goals = (match.home_team.home_attack_strength
+        * match.away_team.away_defense_strength
+        * match.division.attack_strength)
+    away_goals = (match.away_team.away_attack_strength
+        * match.home_team.home_defense_strength
+        * match.division.defense_strength)
+
+    match.pfthg = home_goals
+    match.pftag = away_goals
+
+    match.save()
+
+    probability_type = Probability_Type.objects.get(name='goals')
+
+    home_probabilities = []
+    away_probabilities = []
+
+    # calculate match probabilities
+    for i in range(0, 6):
+        home_pmf = round((poisson.pmf(i, home_goals) * 100), 1)
+        away_pmf = round((poisson.pmf(i, away_goals) * 100), 1)
+        home_probs, created = Probability.objects.get_or_create(
+                match=match,
+                team=match.home_team,
+                probability_type=probability_type,
+                probability=home_pmf,
+                name=i)
+        away_probs, created  = Probability.objects.get_or_create(
+                match=match,
+                team=match.away_team,
+                probability_type=probability_type,
+                probability=away_pmf,
+                name=i)
+        home_probs.save()
+        away_probs.save()
+
+        home_probabilities.append(home_probs)
+        away_probabilities.append(away_probs)
+
+
+    under = 0
+    over = 0
+
+    # home win %
+    match.home_win = 0
+    match.away_win = 0
+    match.draw = 0
+    for i in range(0,6):
+        for j in range(i+1,6):
+            home = home_probs[j].probability
+            away = away_probs[i].probability
+            match.home_win += (home / 10) * (away / 10)
+
+            if j <= 2 and i <= 0:
+                under += (home / 10) * (away / 10)
+            else:
+                over += (home / 10) * (away / 10)
+
+    match.home_win = round(match.home_win, 1)
+
+    # draw %
+    for i in range(0,6):
+        home = home_probs[i].probability
+        away = away_probs[i].probability
+        match.draw += (home / 10) * (away / 10)
+
+        if i < 2:
+            under += (home / 10) * (away / 10)
+        else:
+            over += (home / 10) * (away / 10)
+
+    match.draw = round(match.draw, 1)
+
+    # away win %
+    for i in range(0,6):
+        for j in range(i+1,6):
+            home = home_probs[i].probability
+            away = away_probs[j].probability
+            match.away_win += (home / 10) * (away / 10)
+
+            if j <= 2 and i <= 0:
+                under += (home / 10) * (away / 10)
+            else:
+                over += (home / 10) * (away / 10)
+
+    match.away_win = round(match.away_win, 1)
+
+    match.under = under
+    match.over = over
+    return match
+
 def refresh_match_stats(modelmatch, request, queryset):
     for match in queryset:
         if match.completed:
             continue
         else:
-            # calculate expected goals
-            home_goals = (match.home_team.home_attack_strength
-                * match.away_team.away_defense_strength
-                * match.division.attack_strength)
-            away_goals = (match.away_team.away_attack_strength
-                * match.home_team.home_defense_strength
-                * match.division.defense_strength)
-
-            probability_type = Probability_Type.objects.get(name='goals')
-
-            # calculate match probabilities
-            for i in range(0, 6):
-                home_pmf = round((poisson.pmf(i, home_goals) * 100), 1)
-                away_pmf = round((poisson.pmf(i, away_goals) * 100), 1)
-                home_probs, created = Probability.objects.get_or_create(
-                        match=match,
-                        team=match.home_team,
-                        probability_type=probability_type,
-                        probability=home_pmf,
-                        name=i)
-                away_probs, created  = Probability.objects.get_or_create(
-                        match=match,
-                        team=match.away_team,
-                        probability_type=probability_type,
-                        probability=away_pmf,
-                        name=i)
-                home_probs.save()
-                away_probs.save()
-
-            home_probs = Probability.objects.filter(
-                    match=match,
-                    team=match.home_team,
-                    probability_type=probability_type,
-                    )
-            away_probs = Probability.objects.filter(
-                    match=match,
-                    team=match.away_team,
-                    probability_type=probability_type,
-                    )
-
-            match.pfthg = home_goals
-            match.pftag = away_goals
-
-            under = 0
-            over = 0
-
-            # home win %
-            match.home_win = 0
-            match.away_win = 0
-            match.draw = 0
-            for i in range(0,6):
-                for j in range(i+1,6):
-                    home = home_probs[j].probability
-                    away = away_probs[i].probability
-                    match.home_win += (home / 10) * (away / 10)
-
-                    if j <= 2 and i <= 0:
-                        under += (home / 10) * (away / 10)
-                    else:
-                        over += (home / 10) * (away / 10)
-
-            match.home_win = round(match.home_win, 1)
-
-            # draw %
-            for i in range(0,6):
-                home = home_probs[i].probability
-                away = away_probs[i].probability
-                match.draw += (home / 10) * (away / 10)
-
-                if i < 2:
-                    under += (home / 10) * (away / 10)
-                else:
-                    over += (home / 10) * (away / 10)
-
-            match.draw = round(match.draw, 1)
-
-            # away win %
-            for i in range(0,6):
-                for j in range(i+1,6):
-                    home = home_probs[i].probability
-                    away = away_probs[j].probability
-                    match.away_win += (home / 10) * (away / 10)
-
-                    if j <= 2 and i <= 0:
-                        under += (home / 10) * (away / 10)
-                    else:
-                        over += (home / 10) * (away / 10)
-
-            match.away_win = round(match.away_win, 1)
-
-            match.under = under
-            match.over = over
+            match = calculate_match_probabilities(match)
             match.save()
 
 def refresh_league(modelleague, request, queryset):
@@ -237,14 +235,17 @@ def refresh_league(modelleague, request, queryset):
 
             entry.save()
 
+
 class DivisionAdmin(admin.ModelAdmin):
     ordering = ['name']
     actions = [calculate_stats]
+
 
 class TeamAdmin(admin.ModelAdmin):
     ordering = ['name']
     list_filter = ('division',)
     actions = [calculate_team_stats]
+
 
 class MatchAdmin(admin.ModelAdmin):
     list_display = (
@@ -275,80 +276,9 @@ class MatchAdmin(admin.ModelAdmin):
             return ['-date', 'division__name', 'home_team__name']
 
     def save_model(self, request, obj, form, change):
-        if obj.completed:
-            super(MatchAdmin, self).save_model(request, obj, form, change)
-        else:
-            # calculate expected goals
-            home_goals = (obj.home_team.home_attack_strength
-                * obj.away_team.away_defense_strength
-                * obj.division.attack_strength)
-            away_goals = (obj.away_team.away_attack_strength
-                * obj.home_team.home_defense_strength
-                * obj.division.defense_strength)
-
-            home_team_probs = []
-            away_team_probs = []
-
-            # calculate obj probabilities
-            for i in range(0, 6):
-                home_team_probs.append(
-                        round((poisson.pmf(i, home_goals) * 100), 1))
-                away_team_probs.append(
-                        round((poisson.pmf(i, away_goals) * 100), 1))
-
-            obj.pfthg = home_goals
-            obj.pftag = away_goals
-
-            under = 0
-            over = 0
-
-            # home win %
-            obj.home_win = 0
-            obj.away_win = 0
-            obj.draw = 0
-            for i in range(0,6):
-                for j in range(i+1,6):
-                    home = home_team_probs[j]
-                    away = away_team_probs[i]
-                    obj.home_win += (home / 10) * (away / 10)
-
-                    if j <= 2 and i <= 0:
-                        under += (home / 10) * (away / 10)
-                    else:
-                        over += (home / 10) * (away / 10)
-
-            obj.home_win = round(obj.home_win, 1)
-
-            # draw %
-            for i in range(0,6):
-                home = home_team_probs[i]
-                away = away_team_probs[i]
-                obj.draw += (home / 10) * (away / 10)
-
-                if i < 2:
-                    under += (home / 10) * (away / 10)
-                else:
-                    over += (home / 10) * (away / 10)
-
-            obj.draw = round(obj.draw, 1)
-
-            # away win %
-            for i in range(0,6):
-                for j in range(i+1,6):
-                    home = home_team_probs[i]
-                    away = away_team_probs[j]
-                    obj.away_win += (home / 10) * (away / 10)
-
-                    if j <= 2 and i <= 0:
-                        under += (home / 10) * (away / 10)
-                    else:
-                        over += (home / 10) * (away / 10)
-
-            obj.away_win = round(obj.away_win, 1)
-
-            obj.under = under
-            obj.over = over
-            super(MatchAdmin, self).save_model(request, obj, form, change)
+        if not obj.completed:
+            match = calculate_match_probabilities(obj)
+        super(MatchAdmin, self).save_model(request, obj, form, change)
 
 
 class OddsAdmin(admin.ModelAdmin):
@@ -363,12 +293,15 @@ class OddsAdmin(admin.ModelAdmin):
             return super(OddsAdmin, self).formfield_for_foreignkey(
                     db_field, request, **kwargs)
 
+
 class LeagueAdmin(admin.ModelAdmin):
     actions = [refresh_league]
+
 
 class League_EntryAdmin(admin.ModelAdmin):
     list_filter = ('table',)
     ordering = ['-points']
+
 
 # Register your models here.
 admin.site.register(Team, TeamAdmin)

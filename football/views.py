@@ -42,25 +42,27 @@ def match(request, match_id):
 
     # home team last 5 home matches
     home_team_last_5_at_home = Match.objects.filter(
-            date__lte=m.date,
+            date__lt=m.date,
             home_team=m.home_team,
         ).exclude(
             completed=False
         ).order_by('-date')[:5]
     away_team_last_5_away = Match.objects.filter(
-            date__lte=m.date,
+            date__lt=m.date,
             away_team=m.away_team,
         ).exclude(
             completed=False
         ).order_by('-date')[:5]
 
     home_team_last_5 = Match.objects.filter(
-            Q(home_team=m.home_team) |
-            Q(away_team=m.home_team)
+            Q(date__lt=m.date) &
+            (Q(home_team=m.home_team) |
+            Q(away_team=m.home_team))
             ).order_by('-date').exclude(completed=False)[:5]
     away_team_last_5 = Match.objects.filter(
-            Q(home_team=m.away_team) |
-            Q(away_team=m.away_team)
+            Q(date__lt=m.date) &
+            (Q(home_team=m.away_team) |
+            Q(away_team=m.away_team))
             ).order_by('-date').exclude(completed=False)[:5]
 
     # Get the league table associated with this match

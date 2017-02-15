@@ -12,7 +12,7 @@ from football.models import Team, Match, Odds, Division
 
 class Command(BaseCommand):
     help = 'Get the latest odds from BetFair'
-    session_token = '+kIJpOIESd/L+YD5smz6WLOOw+45TbRJOVFeF2i/024='
+    session_token = 'mmjLwJCa/uNSsSPZatma7I4yk5RvAfhh/Um4Lk2JlbM='
     url = "https://api.betfair.com/exchange/betting/json-rpc/v1"
     headers = {
             'X-Application' : 'SMDsyAVkt1mi6WVg',
