@@ -38,30 +38,42 @@
             </ol>
         </div>
     </div>
-    <div class="w3-layout-row">
-        <div class="w3-container w3-layout-cell w3-center">
-            <h3>{{ home_goals|floatformat:"0" }}</h3>
-        </div>
-        <div class="w3-container w3-layout-cell w3-center">
-            <h3> - Predicted Score - </h3>
-        </div>
-        <div class="w3-container w3-layout-cell w3-center">
-            <h3>{{ away_goals|floatformat:"0" }}</h3>
-        </div>
-    </div>
     {% if historical_display %}
     <div class="w3-layout-row">
         <div class="w3-container w3-layout-cell w3-center">
-            <h3>{{ home_goals|floatformat:"0" }}</h3>
+            <h3>{{ match.fthg|floatformat:"0" }}</h3>
         </div>
         <div class="w3-container w3-layout-cell w3-center">
-            <h3> - Predicted Score - </h3>
+            <h3> - Result - </h3>
         </div>
         <div class="w3-container w3-layout-cell w3-center">
-            <h3>{{ away_goals|floatformat:"0" }}</h3>
+            <h3>{{ match.ftag|floatformat:"0" }}</h3>
         </div>
     </div>
     {% endif %}
+    <div class="w3-layout-row">
+        <div class="w3-container w3-layout-cell w3-center">
+            {% if historical_display %}
+                <h4 style="color: grey">{{ home_goals|floatformat:"0" }}</h4>
+            {% else %}
+                <h4>{{ home_goals|floatformat:"0" }}</h4>
+            {% endif %}
+        </div>
+        <div class="w3-container w3-layout-cell w3-center">
+            {% if historical_display %}
+            <h4 style="color: grey"> - Predicted Score - </h4>
+            {% else %}
+            <h4> - Predicted Score - </h4>
+            {% endif %}
+        </div>
+        <div class="w3-container w3-layout-cell w3-center">
+            {% if historical_display %}
+            <h4 style="color: grey">{{ away_goals|floatformat:"0" }}</h4>
+            {% else %}
+            <h4>{{ away_goals|floatformat:"0" }}</h4>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div class="w3-layout-container">

@@ -17,46 +17,52 @@
 </div>
 {% endif %}
 
-{% if not historical_display %}
-<div class="w3-container w3-layout-cell w3-padding-16">
+{% if fixtures %}
+    {% if not historical_display %}
+    <div class="w3-container w3-layout-cell w3-padding-16">
     {% else %}
-<div class="w3-container w3-layout-cell ">
+    <div class="w3-container w3-layout-cell ">
     {% endif %}
-    <table class="w3-table-all">
-        <tr class="w3-dark-grey">
-            <th>Date</th>
-            <th>Home Team</th>
-            <th>Away Team</th>
-            <th>1</th>
-            <th>X</th>
-            <th>2</th>
-            <th>H</th>
-            <th></th>
-            <th>A</th>
-            <th>Detail</th>
-            {% if historical_display %}
-            <th>H</th>
-            <th>A</th>
-            {% endif %}
-        </tr>
-        {% for m in fixtures %}
-        <tr class="w3-hover-grey">
-            <td>{{ m.date|date:"d/m/Y H:i" }}</td>
-            <td>{{ m.home_team.name }}</td>
-            <td>{{ m.away_team.name }}</td>
-            <td>{{ m.home_win|floatformat:"0" }}%</td>
-            <td>{{ m.draw|floatformat:"0" }}%</td>
-            <td>{{ m.away_win|floatformat:"0" }}%</td>
-            <td>{{ m.pfthg|floatformat:"0" }}</td>
-            <td> - </td>
-            <td>{{ m.pftag|floatformat:"0" }}</td>
-            <td><a href="{% url 'football:match' m.id %}">detail</a></td>
-            {% if historical_display %}
-            <td>{{ m.fthg }}</td>
-            <td>{{ m.ftag }}</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </table>
-</div>
+        <table class="w3-table-all">
+            <tr class="w3-dark-grey">
+                <th>Date</th>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>1</th>
+                <th>X</th>
+                <th>2</th>
+                <th>H</th>
+                <th></th>
+                <th>A</th>
+                <th>Detail</th>
+                {% if historical_display %}
+                <th>H</th>
+                <th>A</th>
+                {% endif %}
+            </tr>
+            {% for m in fixtures %}
+            <tr class="w3-hover-grey">
+                <td>{{ m.date|date:"d/m/Y H:i" }}</td>
+                <td>{{ m.home_team.name }}</td>
+                <td>{{ m.away_team.name }}</td>
+                <td>{{ m.home_win|floatformat:"0" }}%</td>
+                <td>{{ m.draw|floatformat:"0" }}%</td>
+                <td>{{ m.away_win|floatformat:"0" }}%</td>
+                <td>{{ m.pfthg|floatformat:"0" }}</td>
+                <td> - </td>
+                <td>{{ m.pftag|floatformat:"0" }}</td>
+                <td><a href="{% url 'football:match' m.id %}">detail</a></td>
+                {% if historical_display %}
+                <td>{{ m.fthg }}</td>
+                <td>{{ m.ftag }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <div class="w3-container w3-layout-cell ">
+        <p>No fixtures to display for the selected league.</p>
+    </div>
+{% endif %}
 {% endblock %}

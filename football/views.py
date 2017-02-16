@@ -101,6 +101,7 @@ def match(request, match_id):
         under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
 
     return render(request, 'football/match.html', {
+        'match': m,
         'home_team'     : m.home_team,
         'away_team'     : m.away_team,
         'home_goals'    : m.pfthg,
@@ -129,6 +130,7 @@ def match(request, match_id):
         'away_stake' : round(away_stake, 2),
         'over_stake' : round(over_stake, 2),
         'under_stake' : round(under_stake, 2),
+        'historical_display': m.completed,
         })
 
 def tables(request, division_id=Division.objects.first().id):

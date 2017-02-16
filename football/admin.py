@@ -86,23 +86,29 @@ def calculate_match_probabilities(match):
     away_probabilities = []
 
     # calculate match probabilities
-    for i in range(0, 6):
-        home_pmf = round((poisson.pmf(i, home_goals) * 100), 1)
-        away_pmf = round((poisson.pmf(i, away_goals) * 100), 1)
+    for i in range(6):
+        home_pmf = poisson.pmf(i, home_goals)
+        away_pmf = poisson.pmf(i, away_goals)
+
         home_probs, created = Probability.objects.get_or_create(
                 match=match,
                 team=match.home_team,
                 probability_type=probability_type,
-                probability=home_pmf,
                 name=i)
+        home_probs.probability = home_pmf
         away_probs, created  = Probability.objects.get_or_create(
                 match=match,
                 team=match.away_team,
                 probability_type=probability_type,
-                probability=away_pmf,
                 name=i)
+        away_probs.probability = away_pmf
         home_probs.save()
         away_probs.save()
+
+        print("{} - home: {}, away: {}".format(
+            i,
+            home_probs.probability,
+            away_probs.probability))
 
         home_probabilities.append(home_probs)
         away_probabilities.append(away_probs)
@@ -115,48 +121,47 @@ def calculate_match_probabilities(match):
     match.home_win = 0
     match.away_win = 0
     match.draw = 0
-    for i in range(0,6):
-        for j in range(i+1,6):
-            home = home_probs[j].probability
-            away = away_probs[i].probability
-            match.home_win += (home / 10) * (away / 10)
+    for j, away in enumerate(away_probabilities):
+        for i, home in enumerate(home_probabilities[j+1:]):
+            probability = home.probability * away.probability
+            match.home_win += probability
 
             if j <= 2 and i <= 0:
-                under += (home / 10) * (away / 10)
+                under += probability
             else:
-                over += (home / 10) * (away / 10)
+                over += probability
 
-    match.home_win = round(match.home_win, 1)
+    match.home_win = round(match.home_win * 100, 1)
 
     # draw %
-    for i in range(0,6):
-        home = home_probs[i].probability
-        away = away_probs[i].probability
-        match.draw += (home / 10) * (away / 10)
+    for i in range(6):
+        home = home_probabilities[i].probability
+        away = away_probabilities[i].probability
+        match.draw += (home) * (away)
 
         if i < 2:
-            under += (home / 10) * (away / 10)
+            under += (home) * (away)
         else:
-            over += (home / 10) * (away / 10)
+            over += (home) * (away)
 
-    match.draw = round(match.draw, 1)
+    match.draw = round(match.draw * 100, 1)
 
     # away win %
-    for i in range(0,6):
+    for i in range(6):
         for j in range(i+1,6):
-            home = home_probs[i].probability
-            away = away_probs[j].probability
-            match.away_win += (home / 10) * (away / 10)
+            home = home_probabilities[i].probability
+            away = away_probabilities[j].probability
+            match.away_win += (home) * (away)
 
             if j <= 2 and i <= 0:
-                under += (home / 10) * (away / 10)
+                under += (home) * (away)
             else:
-                over += (home / 10) * (away / 10)
+                over += (home) * (away)
 
-    match.away_win = round(match.away_win, 1)
+    match.away_win = round(match.away_win * 100, 1)
 
-    match.under = under
-    match.over = over
+    match.under = under * 100
+    match.over = over * 100
     return match
 
 def refresh_match_stats(modelmatch, request, queryset):
