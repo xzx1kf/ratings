@@ -134,6 +134,7 @@ def calculate_match_probabilities(match):
     match.home_win = round(match.home_win * 100, 1)
 
     # draw %
+    # TODO: Hi Nick
     for i in range(6):
         home = home_probabilities[i].probability
         away = away_probabilities[i].probability
