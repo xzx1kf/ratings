@@ -94,17 +94,16 @@ def match(request, match_id):
     under_stake = 0
 
     if odds.home and odds.away and odds.draw and odds.over and odds.under > 0:
-        home_stake = 200 /(2 * odds.home * (1 - (min(m.home_win, 60) / 100)))
-        draw_stake = 200 /(2 * odds.draw * (1 - (min(m.draw, 60) / 100)))
-        away_stake = 200 /(2 * odds.away * (1 - (min(m.away_win, 60) / 100)))
-        over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
-        under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
+        home_stake = 200 / (2 * odds.home * (1 - (min(m.home_win, 60) / 100)))
+        draw_stake = 200 / (2 * odds.draw * (1 - (min(m.draw, 60) / 100)))
+        away_stake = 200 / (2 * odds.away * (1 - (min(m.away_win, 60) / 100)))
+        over_stake = 200 / (2 * odds.over * (1 - (min(m.over, 60) / 100)))
+        under_stake = 200 / (2 * odds.under * (1 - (min(m.under, 60) / 100)))
 
     home_team_probabilities = [
             p.probability * 100 for p in home_team_probabilities]
     away_team_probabilities = [
             p.probability * 100 for p in away_team_probabilities]
-
 
     return render(request, 'football/match.html', {
         'match': m,
