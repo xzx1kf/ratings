@@ -105,14 +105,8 @@ def calculate_match_probabilities(match):
         home_probs.save()
         away_probs.save()
 
-        print("{} - home: {}, away: {}".format(
-            i,
-            home_probs.probability,
-            away_probs.probability))
-
         home_probabilities.append(home_probs)
         away_probabilities.append(away_probs)
-
 
     under = 0
     over = 0
@@ -134,29 +128,27 @@ def calculate_match_probabilities(match):
     match.home_win = round(match.home_win * 100, 1)
 
     # draw %
-    for i in range(6):
-        home = home_probabilities[i].probability
-        away = away_probabilities[i].probability
-        match.draw += (home) * (away)
+    for i, (home, away) in enumerate(zip(home_probabilities, away_probabilities)):
+        probability = home.probability * away.probability
+        match.draw += probability
 
         if i < 2:
-            under += (home) * (away)
+            under += probability
         else:
-            over += (home) * (away)
+            over += probability
 
     match.draw = round(match.draw * 100, 1)
 
     # away win %
-    for i in range(6):
-        for j in range(i+1,6):
-            home = home_probabilities[i].probability
-            away = away_probabilities[j].probability
-            match.away_win += (home) * (away)
+    for i, home in enumerate(home_probabilities):
+        for j, away in enumerate(away_probabilities[i+1:]):
+            probability = home.probability * away.probability
+            match.away_win += probability
 
             if j <= 2 and i <= 0:
-                under += (home) * (away)
+                under += probability
             else:
-                over += (home) * (away)
+                over += probability
 
     match.away_win = round(match.away_win * 100, 1)
 

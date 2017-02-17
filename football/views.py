@@ -100,6 +100,12 @@ def match(request, match_id):
         over_stake = 200 /(2 * odds.over * (1 - (min(m.over, 60) / 100)))
         under_stake = 200 /(2 * odds.under * (1 - (min(m.under, 60) / 100)))
 
+    home_team_probabilities = [
+            p.probability * 100 for p in home_team_probabilities]
+    away_team_probabilities = [
+            p.probability * 100 for p in away_team_probabilities]
+
+
     return render(request, 'football/match.html', {
         'match': m,
         'home_team'     : m.home_team,
